@@ -24,8 +24,6 @@ When you're done playing with OpenUxAS, you can use Vagrant to destroy the virtu
 1. Install Vagrant, after downloading it from https://www.vagrantup.com/downloads.html
 2. Install a virtual machine provider, preferably Virtual Box, which is available from https://www.virtualbox.org/wiki/Downloads
 
-***IMPORTANT***: if you are on Windows then you **must** start your console session as an Administrator.
-
 Then, open a terminal (on *NIX machines) or a command prompt (on Windows), navigate to the directory where you've cloned this repository, and run the command:
 
     vagrant up uxas
@@ -46,6 +44,12 @@ That will fetch remaining dependencies and build the C++ version of OpenUxAS.
 Once the build is complete, you will be able to get to the OpenUxAS, OpenAMASE and LmcpGen repos by looking under `uxas` directory at the top of the home directory.
 
 Additional build and advanced configuration options are discussed below.
+
+*Note*: if you want to build the machine and run builds in one command, you can:
+
+    vagrant up uxas && vagrant ssh uxas -c "cd bootstrap && python3 anod-build uxas"
+
+Additional commands can be chained to this, within the quotes.
 
 
 Configuring an Existing Machine

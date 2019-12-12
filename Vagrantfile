@@ -23,8 +23,8 @@ PROVISIONING_APT = <<-SHELL
   echo " "
   echo "# ------------------------------------------------------ #"
   echo "# Apt Update & Upgrade "
-  apt-get update
-  apt-get -y upgrade
+  DEBIAN_FRONTEND=noninteractive apt-get update
+  DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
   echo " "
   echo "# End Apt Update & Upgrade"
   echo "# ------------------------------------------------------ #"
@@ -34,7 +34,7 @@ PROVISIONING_APT = <<-SHELL
   echo "# apt install -y make cmake, pkg-config, uuid-dev, "
   echo "#                python3, python3-pip, python3-venv, "
   echo "#                libyaml-dev fontconfig libx11-xcb1"
-  apt-get install -y make cmake pkg-config uuid-dev python3 python3-pip python3-venv libyaml-dev fontconfig libx11-xcb1
+  DEBIAN_FRONTEND=noninteractive apt-get install -y make cmake pkg-config uuid-dev python3 python3-pip python3-venv libyaml-dev fontconfig libx11-xcb1
   echo " "
   echo "# end apt install"
   echo "# ------------------------------------------------------ #"
@@ -56,7 +56,7 @@ PROVISIONING_REPOS = <<-SHELL
   echo "# ------------------------------------------------------ #"
   echo "# git gnat-community-install-script "
   cd ~vagrant/dependencies
-  sudo -Hu vagrant git clone https://github.com/AdaCore/gnat_community_install_script
+  sudo -Hu vagrant git clone --quiet https://github.com/AdaCore/gnat_community_install_script
   echo " "
   echo "# end git gnat-community-install-script "
   echo "# ------------------------------------------------------ #"
@@ -95,13 +95,15 @@ PROVISIONING_DEPENDENCIES = <<-SHELL
   # run the install script
   echo "# run the install script"
   cd /home/vagrant/dependencies/gnat_community_install_script
-  sh install_package.sh /home/vagrant/software/gnat_community/gnat-bin /opt/gnat
+  
+  # Running this as vagrant removes a spurious error message
+  sudo -EHu vagrant sh install_package.sh /home/vagrant/software/gnat_community/gnat-bin /opt/gnat
 
   # set the paths - note that we have to move to the vagrant user dir
   # because provisioning runs as root
   echo "# set the paths"
   cd ~vagrant
-  sudo -Hu vagrant echo "PATH=\\$PATH:/opt/gnat/bin" >> ~vagrant/.bashrc
+  sudo -Hu vagrant echo "PATH=/opt/gnat/bin:\\$PATH" >> ~vagrant/.profile
   echo " "
   echo "# end gnat community "
   echo "# ------------------------------------------------------ #"
@@ -112,11 +114,15 @@ PROVISIONING_ENV = <<-SHELL
   echo " "
   echo "# ------------------------------------------------------ #"
   echo "# install env"
-  cd ~vagrant/bootstrap
+  cd ~vagrant
+
+  sudo -Hu vagrant cp -R bootstrap-src-shared bootstrap
+
+  cd bootstrap
 
   # run as vagrant
   sudo -Hu vagrant python3 install_env
-  sudo -Hu vagrant echo "PATH=/home/vagrant/bootstrap/vpython/bin:\\$PATH" >> ~vagrant/.bashrc
+  sudo -Hu vagrant echo "PATH=/home/vagrant/bootstrap/vpython/bin:\\$PATH" >> ~vagrant/.profile
 
   echo " "
   echo "# end install env"
@@ -134,9 +140,9 @@ PROVISIONING_LINKS = <<-SHELL
   cd uxas
 
   # run as vagrant
-  sudo -u vagrant ln -s ~vagrant/bootstrap/sbx/vcs/openuxas OpenUxAS
-  sudo -u vagrant ln -s ~vagrant/bootstrap/sbx/vcs/amase OpenAMASE
-  sudo -u vagrant ln -s ~vagrant/bootstrap/sbx/vcs/lmcpgen LmcpGen
+  sudo -u vagrant ln -fs ~vagrant/bootstrap/sbx/vcs/openuxas OpenUxAS
+  sudo -u vagrant ln -fs ~vagrant/bootstrap/sbx/vcs/amase OpenAMASE
+  sudo -u vagrant ln -fs ~vagrant/bootstrap/sbx/vcs/lmcpgen LmcpGen
 
   echo " "
   echo "# end creating links"
@@ -151,7 +157,7 @@ Ubuntu 18.04 OpenUxAS Development Vagrant Box
 This machine has been preconfigured with all dependencies required to build and
 run OpenUxAS. To get started, run the following command:
 
-  cd ~vagrant/bootstrap && python3 anod-build uxas
+  cd ~vagrant/bootstrap && anod-build uxas
 
 That will build the C++ version of OpenUxAS. Additional instructions can be 
 found in the README in ~vagrant/bootstrap/README.md (or more easily read on
@@ -192,7 +198,7 @@ Vagrant.configure("2") do |config|
   # Common provisioning
   config.vm.provision "shell", inline: PROVISIONING_APT
 
-  config.vm.synced_folder ".", "/home/vagrant/bootstrap"
+  config.vm.synced_folder ".", "/home/vagrant/bootstrap-src-shared"
 
   # This VM is self-contained: it doesn't need and doesn't map any local files.
   config.vm.define "uxas" do |contained|
