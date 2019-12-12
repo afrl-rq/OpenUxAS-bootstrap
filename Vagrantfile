@@ -177,8 +177,9 @@ Vagrant.configure("2") do |config|
 
   # Specific configuration for Virtual Box
   config.vm.provider "virtualbox" do |vb|
-    # Display the VirtualBox GUI when booting the machine
-    vb.gui = true
+    # Controls whether or not the VirtualBox GUI is displayed when booting 
+    # the machine
+    vb.gui = false
 
     # Customize the amount of memory on the VM. This amount seems to be
     # required to complete the build.
