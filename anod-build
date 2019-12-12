@@ -315,6 +315,10 @@ if __name__ == '__main__':
         'the basename of an .anod file (without the extension)')
     m.argument_parser.add_argument('--qualifier', help='optional qualifier')
     m.argument_parser.add_argument(
+        '--sandbox-dir',
+        help='directory in which build artefacts are stored',
+        default=SBX_DIR)
+    m.argument_parser.add_argument(
         '--force',
         help='force rebuild of everything',
         action="store_true",
@@ -332,7 +336,7 @@ if __name__ == '__main__':
     asr = AnodSpecRepository(SPEC_DIR)
     ac = AnodContext(asr)
     sbx = SandBox()
-    sbx.root_dir = SBX_DIR
+    sbx.root_dir = m.args.sandbox_dir
     sbx.create_dirs()
     sbx.specs_dir = SPEC_DIR
 
