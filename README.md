@@ -26,7 +26,7 @@ To get started with Vagrant, you will first need to:
 1. install Vagrant, after downloading it from https://www.vagrantup.com/downloads.html
 2. install a virtual machine provider, preferably Virtual Box, which is available from https://www.virtualbox.org/wiki/Downloads
 
-Then, open a terminal (on *NIX machines) or a command prompt (on Windows), navigate to the directory where you've cloned this repository, and run the command:
+Then, open a terminal (on *NIX machines) or a command prompt (on Windows), navigate to the directory where you've cloned this repository, and run the command (or see "GUI Machine", below, if you want a machine with a GUI):
 
     vagrant up uxas
 
@@ -58,12 +58,51 @@ Vagrant Username and Password
 
 As is common for Vagrant machines, the username is "vagrant" and the password is "vagrant".
 
-Vagrant Cleanup
----------------
+Other Vagrant Commands
+----------------------
+
+You can suspend your Vagrant machine, saving all state, with:
+
+    vagrant suspend uxas
+
+Likewise, you can shut it down with:
+
+    vagrant halt uxas
+
+Once shut down, you start the machine again with:
+
+    vagrant up uxas
+
+Finally, if you want to restart, **do not** restart from within the machine, or shared folders will *not* be mapped.
+Instead, use:
+
+    vagrant reload uxas
 
 When you are done with your Vagrant machine, you can destroy it with:
 
     vagrant destroy uxas
+
+
+Vagrant GUI Machine
+-------------------
+
+If you plan to do development work on OpenUxAS using Vagrant, you may prefer to have a machine with a GUI.
+A spec is provided that adds Ubunutu desktop and provides a graphical login.
+You can build this machine with:
+
+    vagrant up uxas-gui
+
+This machine takes significantly longer to build, downloads about twice as much data, and requires twice as much RAM as the non-GUI machine.
+Once the machine is built, you should restart it so that the VirtualBox guest additions can be installed:
+
+    vagrant reload uxas-gui
+
+All of the commands listed above will work for this machine; you replace `uxas` with `uxas-gui`.
+So to log in from a console:
+
+    vagrant ssh uxas-gui
+
+You can also log in via the graphical interface, which VirtualBox will show automatically.
 
 
 Configuring an Existing Machine

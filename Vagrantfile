@@ -56,6 +56,8 @@ PROVISIONING_REPOS = <<-SHELL
   echo "# ------------------------------------------------------ #"
   echo "# git gnat-community-install-script "
   cd ~vagrant/dependencies
+
+  echo "# cloning gnat_community_install_script..."
   sudo -Hu vagrant git clone --quiet https://github.com/AdaCore/gnat_community_install_script
   echo " "
   echo "# end git gnat-community-install-script "
@@ -105,7 +107,25 @@ PROVISIONING_DEPENDENCIES = <<-SHELL
   cd ~vagrant
   sudo -Hu vagrant echo "PATH=/opt/gnat/bin:\\$PATH" >> ~vagrant/.profile
   echo " "
-  echo "# end gnat community "
+  echo "# end install gnat community "
+  echo "# ------------------------------------------------------ #"
+SHELL
+
+# Currently, we have to patch the formal containers in GNAT community. The
+# changes here are already at the FSF and will be integrated into the next
+# GCC release.
+PROVISIONING_PATCH_COMMUNITY = <<-SHELL
+  echo " "
+  echo "# ------------------------------------------------------ #"
+  echo "# patch gnat community "
+  echo "#"
+
+  cd /opt/gnat
+  echo "Patching using ~vagrant/bootstrap/community.patch"
+  patch -p0 < ~vagrant/bootstrap/community.patch
+
+  echo " "
+  echo "# end patch gnat community "
   echo "# ------------------------------------------------------ #"
 SHELL
 
@@ -124,11 +144,15 @@ PROVISIONING_ENV = <<-SHELL
   sudo -Hu vagrant python3 install_env
   sudo -Hu vagrant echo "PATH=/home/vagrant/bootstrap/vpython/bin:\\$PATH" >> ~vagrant/.profile
 
+  # After the build, java will be in a nonstandard place, so set the path for it:
+  sudo -Hu vagrant echo "PATH=\\$PATH:/home/vagrant/bootstrap/sbx/x86_64-linux/java/install/bin"
+
   echo " "
   echo "# end install env"
   echo "# ------------------------------------------------------ #"
 SHELL
 
+# Set some symlinks to make it easier to get to the UxAS-related repos
 PROVISIONING_LINKS = <<-SHELL
   echo " "
   echo "# ------------------------------------------------------ #"
@@ -157,7 +181,7 @@ Ubuntu 18.04 OpenUxAS Development Vagrant Box
 This machine has been preconfigured with all dependencies required to build and
 run OpenUxAS. To get started, run the following command:
 
-  cd ~vagrant/bootstrap && anod-build uxas
+  cd ~vagrant/bootstrap && python3 anod-build uxas
 
 That will build the C++ version of OpenUxAS. Additional instructions can be 
 found in the README in ~vagrant/bootstrap/README.md (or more easily read on
@@ -169,12 +193,55 @@ used to quickly navigate to the OpenUxAS, OpenAMASE, or LMCPgen repositories.
 
 SHELL
 
+# Set the above MOTD so that the user can have some guidance upon login.
 PROVISIONING_MOTD = <<-SHELL
   echo "#{MOTD_MESSAGE}" > /etc/motd
 SHELL
 
+PROVISIONING_GUI = <<-SHELL
+#  DEBIAN_FRONTEND=noninteractive apt-get install -y tasksel
+#  tasksel install lubuntu-core
+#  service lightdm start
+
+  # echo " "
+  # echo "# ------------------------------------------------------ #"
+  # echo "# apt-get install lubuntu-core "
+  # DEBIAN_FRONTEND=noninteractive apt-get install -y lubuntu-core virtualbox-guest-dkms
+  # echo "# end apt-get install lubuntu-core "
+  # echo "# ------------------------------------------------------ #"
+
+  # echo " "
+  # echo "# ------------------------------------------------------ #"
+  # echo "# starting the display server"
+  # service lightdm start
+  # echo "# done"
+  # echo "# ------------------------------------------------------ #"
+
+  echo " "
+  echo "# ------------------------------------------------------ #"
+  echo "# apt-get install ubuntu-desktop "
+  DEBIAN_FRONTEND=noninteractive apt-get install -y ubuntu-desktop virtualbox-guest-dkms
+  echo "# end apt-get install ubuntu-desktop "
+  echo "# ------------------------------------------------------ #"
+
+  echo " "
+  echo "# ------------------------------------------------------ #"
+  echo "# starting the display server"
+  service gdm3 start
+  echo "# done"
+  echo "# ------------------------------------------------------ #"
+SHELL
+
+# All machines need this provisioning
+COMMON_PROVISIONING = PROVISIONING_REPOS + 
+                      PROVISIONING_DEPENDENCIES +
+                      PROVISIONING_PATCH_COMMUNITY +
+                      PROVISIONING_ENV +
+                      PROVISIONING_LINKS +
+                      PROVISIONING_MOTD
+
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
-# configures the configuration version (we support older styles for
+# configures the configuration version (Vagrant supports older styles for
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
 Vagrant.configure("2") do |config|
@@ -201,24 +268,59 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder ".", "/home/vagrant/bootstrap-src-shared"
 
   # This VM is self-contained: it doesn't need and doesn't map any local files.
-  config.vm.define "uxas" do |contained|
-    contained.vm.provision "shell", inline: PROVISIONING_REPOS + 
-                                            PROVISIONING_GNAT_DOWNLOAD + 
-                                            PROVISIONING_DEPENDENCIES +
-                                            PROVISIONING_ENV +
-                                            PROVISIONING_LINKS +
-                                            PROVISIONING_MOTD
+  config.vm.define "uxas" do |uxas|
+    uxas.vm.provision "shell", inline: PROVISIONING_GNAT_DOWNLOAD + 
+                                       COMMON_PROVISIONING
+  end
+
+  # This VM is self-contained: it doesn't need and doesn't map any local files.
+  config.vm.define "uxas-gui" do |uxas_gui|
+    # Specific configuration for Virtual Box
+    uxas_gui.vm.provider "virtualbox" do |vb_gui|
+      # Controls whether or not the VirtualBox GUI is displayed when booting 
+      # the machine
+      vb_gui.gui = true
+
+      # GUI machine needs more RAM.
+      vb_gui.memory = "8192"
+
+      # Give the VM a reasonable amount of VRAM.
+      vb_gui.customize ["modifyvm", :id, "--vram", "128"]
+    end
+
+    uxas_gui.vm.provision "shell", inline: PROVISIONING_GNAT_DOWNLOAD + 
+                                           COMMON_PROVISIONING +
+                                           PROVISIONING_GUI
   end
 
   # This VM is a kind of compromise: it redownloads everything *except* for
   # GNAT community (which takes the longest)
-  config.vm.define "uxas-almost" do |almost|
-    almost.vm.synced_folder "../software/gnat_community", "/home/vagrant/software/gnat_community"
+  config.vm.define "uxas-almost" do |uxas_almost|
+    uxas_almost.vm.synced_folder "../software/gnat_community", "/home/vagrant/software/gnat_community"
 
-    almost.vm.provision "shell", inline: PROVISIONING_REPOS +
-                                         PROVISIONING_DEPENDENCIES +
-                                         PROVISIONING_ENV +
-                                         PROVISIONING_LINKS +
-                                         PROVISIONING_MOTD
+    uxas_almost.vm.provision "shell", inline: COMMON_PROVISIONING
   end
+
+  # This VM is a kind of compromise: it redownloads everything *except* for
+  # GNAT community (which takes the longest)
+  config.vm.define "uxas-almost-gui" do |uxas_almost_gui|
+    # Specific configuration for Virtual Box
+    uxas_almost_gui.vm.provider "virtualbox" do |vb_gui|
+      # Controls whether or not the VirtualBox GUI is displayed when booting 
+      # the machine
+      vb_gui.gui = true
+
+      # GUI machine needs more RAM.
+      vb_gui.memory = "8192"
+
+      # Give the VM a reasonable amount of VRAM.
+      vb_gui.customize ["modifyvm", :id, "--vram", "128"]
+    end
+    
+    uxas_almost_gui.vm.synced_folder "../software/gnat_community", "/home/vagrant/software/gnat_community"
+
+    uxas_almost_gui.vm.provision "shell", inline: COMMON_PROVISIONING +
+                                                  PROVISIONING_GUI
+  end
+
 end
