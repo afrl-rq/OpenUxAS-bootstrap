@@ -25,8 +25,15 @@ To get started with Vagrant, you will first need to:
 
 1. install Vagrant, after downloading it from https://www.vagrantup.com/downloads.html
 2. install a virtual machine provider, preferably Virtual Box, which is available from https://www.virtualbox.org/wiki/Downloads
+3. (option) install the Vagrant plugin for Virtual Box Guest Additions, by running the following in a terminal (on *NIX machines) or a command prompt (on Windows):
 
-Then, open a terminal (on *NIX machines) or a command prompt (on Windows), navigate to the directory where you've cloned this repository, and run the command (or see "GUI Machine", below, if you want a machine with a GUI):
+    vagrant plugin install
+
+> ***Shortcut***: Once this is done, if you want a graphical machine that you can keep using after it is configured, you can mostly forget about the rest of this README, open a terminal (on *NIX machines) or a command prompt (on Windows), navigate to the directory where you've cloned this repository, and run `./build-vagrant-gui`.
+> This will configure a graphical machine and run all of the builds related to OpenUxAS.
+> After the script completes, you can log in (see "Vagrant Username and Password", below) and immediately run examples (see "Running Examples", below).
+
+Once Vagrant is installed, open a terminal (on *NIX machines) or a command prompt (on Windows), navigate to the directory where you've cloned this repository, and run the command (or see "GUI Machine", below, if you want a machine with a GUI):
 
     vagrant up uxas
 
@@ -61,6 +68,10 @@ As is common for Vagrant machines, the username is "vagrant" and the password is
 Other Vagrant Commands
 ----------------------
 
+> ***Shortcut***: If you configured a graphical machine, you can choose to ignore Vagrant and manage the machine through Virtual Box's user interface.
+> In that case, you can ignore the commands below.
+> **Note**: If you do this, the Vagrant-provided shared folder `bootstrap-src-shared` will not be available; this is not terribly important as it mostly exists to enable initial provisioning of the machine.
+
 You can suspend your Vagrant machine, saving all state, with:
 
     vagrant suspend uxas
@@ -92,10 +103,13 @@ You can build this machine with:
 
     vagrant up uxas-gui
 
-This machine takes significantly longer to build, downloads about twice as much data, and requires twice as much RAM as the non-GUI machine.
-Once the machine is built, you should restart it so that the VirtualBox guest additions can be installed:
+You can also build this machine using the supplied script:
 
-    vagrant reload uxas-gui
+    ./build-vagrant-gui
+
+which will run all of the OpenUxAS builds automatically.
+
+This machine takes significantly longer to build, downloads about twice as much data, and requires twice as much RAM as the non-GUI machine.
 
 All of the commands listed above will work for this machine; you replace `uxas` with `uxas-gui`.
 So to log in from a console:
@@ -103,6 +117,20 @@ So to log in from a console:
     vagrant ssh uxas-gui
 
 You can also log in via the graphical interface, which VirtualBox will show automatically.
+
+
+Running Examples
+================
+
+OpenUxAS includes a large number of examples, which you can find in `~uxas/OpenUxAS/examples`.
+To make running these examples much more convient, this repository provides a Python script `run-example.py` that you can use to run examples.
+After you have built OpenUxAS and OpenAMASE, switch to the `bootstrap` directory and run an example like this:
+
+    cd ~bootstrap && python3 run-example.py 02_Example_WaterwaySearch
+
+The `run-example.py` script provides built-in help, which you can access with
+
+    python3 run-example.py -h
 
 
 Configuring an Existing Machine

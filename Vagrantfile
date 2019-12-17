@@ -49,13 +49,13 @@ PROVISIONING_REPOS = <<-SHELL
   # these, later.
 
   # The dependencies: the gnat community install script
-  cd ~vagrant
+  cd /home/vagrant
   sudo -u vagrant mkdir -p dependencies
 
   echo " "
   echo "# ------------------------------------------------------ #"
   echo "# git gnat-community-install-script "
-  cd ~vagrant/dependencies
+  cd /home/vagrant/dependencies
 
   echo "# cloning gnat_community_install_script..."
   sudo -Hu vagrant git clone --quiet https://github.com/AdaCore/gnat_community_install_script
@@ -68,20 +68,22 @@ SHELL
 PROVISIONING_GNAT_DOWNLOAD = <<-SHELL
   # Run as the vagrant user, so that it'll be easier to mess with
   # these, later.
-  cd ~vagrant
+  cd /home/vagrant
   sudo -u vagrant mkdir -p software/gnat_community
-  cd software/gnat_community
+  cd /home/vagrant/software/gnat_community
 
-  # download the installer
-  echo " "
-  echo "# ------------------------------------------------------ #"
-  echo "# downloading gnat community "
-  echo "#"
-  echo "# wget the install file"
-  sudo -Hu vagrant wget -nv -O gnat-bin https://community.download.adacore.com/v1/0cd3e2a668332613b522d9612ffa27ef3eb0815b?filename=gnat-community-2019-20190517-x86_64-linux-bin
-  echo " "
-  echo "# end downloading gnat community "
-  echo "# ------------------------------------------------------ #"
+  if [ ! -f gnat-bin ]; then
+    # download the installer
+    echo " "
+    echo "# ------------------------------------------------------ #"
+    echo "# downloading gnat community "
+    echo "#"
+    echo "# wget the install file"
+    sudo -Hu vagrant wget -nv -O gnat-bin https://community.download.adacore.com/v1/0cd3e2a668332613b522d9612ffa27ef3eb0815b?filename=gnat-community-2019-20190517-x86_64-linux-bin
+    echo " "
+    echo "# end downloading gnat community "
+    echo "# ------------------------------------------------------ #"
+  fi
 SHELL
 
 # Installing GNAT community
@@ -121,8 +123,8 @@ PROVISIONING_PATCH_COMMUNITY = <<-SHELL
   echo "#"
 
   cd /opt/gnat
-  echo "Patching using ~vagrant/bootstrap/community.patch"
-  patch -p0 < ~vagrant/bootstrap/community.patch
+  echo "Patching using ~vagrant/bootstrap-src-shared/community.patch"
+  patch -p0 < /home/vagrant/bootstrap-src-shared/community.patch
 
   echo " "
   echo "# end patch gnat community "
@@ -134,18 +136,17 @@ PROVISIONING_ENV = <<-SHELL
   echo " "
   echo "# ------------------------------------------------------ #"
   echo "# install env"
-  cd ~vagrant
+  
+  sudo -Hu vagrant cp -R /home/vagrant/bootstrap-src-shared /home/vagrant/bootstrap
 
-  sudo -Hu vagrant cp -R bootstrap-src-shared bootstrap
-
-  cd bootstrap
+  cd /home/vagrant/bootstrap
 
   # run as vagrant
   sudo -Hu vagrant python3 install_env
   sudo -Hu vagrant echo "PATH=/home/vagrant/bootstrap/vpython/bin:\\$PATH" >> ~vagrant/.profile
 
   # After the build, java will be in a nonstandard place, so set the path for it:
-  sudo -Hu vagrant echo "PATH=\\$PATH:/home/vagrant/bootstrap/sbx/x86_64-linux/java/install/bin"
+  sudo -Hu vagrant echo "PATH=\\$PATH:/home/vagrant/bootstrap/sbx/x86_64-linux/java/install/bin" >> ~vagrant/.profile
 
   echo " "
   echo "# end install env"
@@ -157,7 +158,7 @@ PROVISIONING_LINKS = <<-SHELL
   echo " "
   echo "# ------------------------------------------------------ #"
   echo "# creating links"
-  cd ~vagrant
+  cd /home/vagrant
 
   sudo -u vagrant mkdir -p uxas
 
@@ -199,24 +200,6 @@ PROVISIONING_MOTD = <<-SHELL
 SHELL
 
 PROVISIONING_GUI = <<-SHELL
-#  DEBIAN_FRONTEND=noninteractive apt-get install -y tasksel
-#  tasksel install lubuntu-core
-#  service lightdm start
-
-  # echo " "
-  # echo "# ------------------------------------------------------ #"
-  # echo "# apt-get install lubuntu-core "
-  # DEBIAN_FRONTEND=noninteractive apt-get install -y lubuntu-core virtualbox-guest-dkms
-  # echo "# end apt-get install lubuntu-core "
-  # echo "# ------------------------------------------------------ #"
-
-  # echo " "
-  # echo "# ------------------------------------------------------ #"
-  # echo "# starting the display server"
-  # service lightdm start
-  # echo "# done"
-  # echo "# ------------------------------------------------------ #"
-
   echo " "
   echo "# ------------------------------------------------------ #"
   echo "# apt-get install ubuntu-desktop "
@@ -234,9 +217,10 @@ SHELL
 
 # All machines need this provisioning
 COMMON_PROVISIONING = PROVISIONING_REPOS + 
+                      PROVISIONING_GNAT_DOWNLOAD +
                       PROVISIONING_DEPENDENCIES +
-                      PROVISIONING_PATCH_COMMUNITY +
                       PROVISIONING_ENV +
+                      PROVISIONING_PATCH_COMMUNITY +
                       PROVISIONING_LINKS +
                       PROVISIONING_MOTD
 
@@ -262,15 +246,22 @@ Vagrant.configure("2") do |config|
     vb.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/v-root", "1"]
   end
 
+  # Always sync this repo.
+  config.vm.synced_folder ".", "/home/vagrant/bootstrap-src-shared"
+
+  # As a compromise, see if gnat community has already been downloaded. If so,
+  # we map that into the VM, where we test for the installer before downloading
+  # it again.
+  if File.exist?("../software/gnat_community/gnat-bin") then
+    config.vm.synced_folder "../software/gnat_community", "/home/vagrant/software/gnat_community"
+  end
+
   # Common provisioning
   config.vm.provision "shell", inline: PROVISIONING_APT
 
-  config.vm.synced_folder ".", "/home/vagrant/bootstrap-src-shared"
-
   # This VM is self-contained: it doesn't need and doesn't map any local files.
   config.vm.define "uxas" do |uxas|
-    uxas.vm.provision "shell", inline: PROVISIONING_GNAT_DOWNLOAD + 
-                                       COMMON_PROVISIONING
+    uxas.vm.provision "shell", inline: COMMON_PROVISIONING
   end
 
   # This VM is self-contained: it doesn't need and doesn't map any local files.
@@ -286,41 +277,11 @@ Vagrant.configure("2") do |config|
 
       # Give the VM a reasonable amount of VRAM.
       vb_gui.customize ["modifyvm", :id, "--vram", "128"]
+      vb_gui.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
+
     end
 
-    uxas_gui.vm.provision "shell", inline: PROVISIONING_GNAT_DOWNLOAD + 
-                                           COMMON_PROVISIONING +
-                                           PROVISIONING_GUI
+    uxas_gui.vm.provision "shell", inline: COMMON_PROVISIONING
+    uxas_gui.vm.provision "shell", inline: PROVISIONING_GUI
   end
-
-  # This VM is a kind of compromise: it redownloads everything *except* for
-  # GNAT community (which takes the longest)
-  config.vm.define "uxas-almost" do |uxas_almost|
-    uxas_almost.vm.synced_folder "../software/gnat_community", "/home/vagrant/software/gnat_community"
-
-    uxas_almost.vm.provision "shell", inline: COMMON_PROVISIONING
-  end
-
-  # This VM is a kind of compromise: it redownloads everything *except* for
-  # GNAT community (which takes the longest)
-  config.vm.define "uxas-almost-gui" do |uxas_almost_gui|
-    # Specific configuration for Virtual Box
-    uxas_almost_gui.vm.provider "virtualbox" do |vb_gui|
-      # Controls whether or not the VirtualBox GUI is displayed when booting 
-      # the machine
-      vb_gui.gui = true
-
-      # GUI machine needs more RAM.
-      vb_gui.memory = "8192"
-
-      # Give the VM a reasonable amount of VRAM.
-      vb_gui.customize ["modifyvm", :id, "--vram", "128"]
-    end
-    
-    uxas_almost_gui.vm.synced_folder "../software/gnat_community", "/home/vagrant/software/gnat_community"
-
-    uxas_almost_gui.vm.provision "shell", inline: COMMON_PROVISIONING +
-                                                  PROVISIONING_GUI
-  end
-
 end
