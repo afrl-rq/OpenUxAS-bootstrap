@@ -1,0 +1,11 @@
+#! /bin/bash
+
+# This script will build the Vagrant GUI machine and then run the three
+# relevant builds for UXAS: the C++ version, the Ada version, and Amase.
+
+MACHINE=uxas-gui
+
+vagrant up $MACHINE &&\
+vagrant ssh $MACHINE -c "cd bootstrap && python3 anod-build uxas" &&\
+vagrant ssh $MACHINE -c "cd bootstrap && python3 anod-build amase" &&\
+vagrant ssh $MACHINE -c "cd bootstrap && python3 anod-build uxas-ada"
