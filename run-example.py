@@ -46,30 +46,6 @@ to run the Waterways example from a single terminal session. Or:
 to run just OpenUxAS for the angled-area example.
 """
 
-ap = argparse.ArgumentParser(
-    formatter_class=argparse.RawDescriptionHelpFormatter,
-    description=DESCRIPTION)
-
-ap.add_argument("example",
-                help="the example directory")
-
-ap.add_argument("--amase", dest="run_amase", default=False,
-                action="store_true",
-                help="run the OpenAMASE part of the example")
-
-ap.add_argument("--uxas", dest="run_uxas", default=False, action="store_true",
-                help="run the OpenUxAS part of the example")
-
-ap.add_argument("--amase-dir", default=AMASE_DIR,
-                help="absolute path to the OpenAMASE repository containing " +
-                     "build outputs")
-
-ap.add_argument("--uxas-dir", default=UXAS_DIR,
-                help="absolute path to the OpenUxAS repository containing " +
-                     "build outputs")
-
-args = ap.parse_args()
-
 
 def get_example_dir():
     """Get the path to the directory containing the example to run."""
@@ -210,11 +186,36 @@ def run_both():
     # Now, when we get here, that means that OpenAMASE was closed.
     print(" ")
     print("Shutting down OpenUxAS.")
-    uxas_popen.terminate
+    uxas_popen.terminate()
 
 
 # Script processing.
 if __name__ == '__main__':
+    ap = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=DESCRIPTION)
+
+    ap.add_argument("example",
+                    help="the example directory")
+
+    ap.add_argument("--amase", dest="run_amase", default=False,
+                    action="store_true",
+                    help="run the OpenAMASE part of the example")
+
+    ap.add_argument("--uxas", dest="run_uxas", default=False,
+                    action="store_true",
+                    help="run the OpenUxAS part of the example")
+
+    ap.add_argument("--amase-dir", default=AMASE_DIR,
+                    help="absolute path to the OpenAMASE repository " +
+                         "containing build outputs")
+
+    ap.add_argument("--uxas-dir", default=UXAS_DIR,
+                    help="absolute path to the OpenUxAS repository " +
+                         "containing build outputs")
+
+    args = ap.parse_args()
+
     try:
         if args.run_amase:
             run_amase()
