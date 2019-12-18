@@ -6,6 +6,7 @@
 MACHINE=uxas-gui
 
 vagrant up $MACHINE &&\
+vagrant reload $MACHINE &&\
 vagrant ssh $MACHINE -c "cd bootstrap && python3 anod-build uxas" &&\
 vagrant ssh $MACHINE -c "cd bootstrap && python3 anod-build amase" &&\
 vagrant ssh $MACHINE -c "cd bootstrap && python3 anod-build uxas-ada"
