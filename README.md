@@ -24,10 +24,9 @@ When you're done playing with OpenUxAS, you can use Vagrant to destroy the virtu
 To get started with Vagrant, you will first need to:
 
 1. install Vagrant, after downloading it from https://www.vagrantup.com/downloads.html
-2. install a virtual machine provider, preferably Virtual Box, which is available from https://www.virtualbox.org/wiki/Downloads
-3. (option) install the Vagrant plugin for Virtual Box Guest Additions, by running the following in a terminal (on *NIX machines) or a command prompt (on Windows):
-
-    vagrant plugin install
+2. install a virtual machine provider, preferably VirtualBox, which is available from https://www.virtualbox.org/wiki/Download_Old_Builds_6_0.
+   ***WARNING***: Vagrant 2.2.6, the current version of Vagrant, does not support VirtualBox 6.1, the newest version of VirtualBox.
+   Please make sure to download and install version 6.0 from https://www.virtualbox.org/wiki/Download_Old_Builds_6_0 and not from www.virtualbox.org/wiki/Downloads.
 
 > ***Shortcut***: Once this is done, if you want a graphical machine that you can keep using after it is configured, you can mostly forget about the rest of this README, open a terminal (on *NIX machines) or a command prompt (on Windows), navigate to the directory where you've cloned this repository, and run `./build-vagrant-gui`.
 > This will configure a graphical machine and run all of the builds related to OpenUxAS.
@@ -68,7 +67,7 @@ As is common for Vagrant machines, the username is "vagrant" and the password is
 Other Vagrant Commands
 ----------------------
 
-> ***Shortcut***: If you configured a graphical machine, you can choose to ignore Vagrant and manage the machine through Virtual Box's user interface.
+> ***Shortcut***: If you configured a graphical machine, you can choose to ignore Vagrant and manage the machine through VirtualBox's user interface.
 > In that case, you can ignore the commands below.
 > **Note**: If you do this, the Vagrant-provided shared folder `bootstrap-src-shared` will not be available; this is not terribly important as it mostly exists to enable initial provisioning of the machine.
 
