@@ -30,10 +30,13 @@ class LmcpGen(spec('common')):
             os.path.join(self['INSTALL_DIR'], 'LmcpGen.jar'),
             '-mdmdir', model_dir, '-dir', install_dir, '-%s' % language)
 
-    @Anod.primitive()
-    def build(self):
+    def build_setenv(self):
         self.deps['java'].setenv()
         self.deps['ant'].setenv()
+
+    @Anod.primitive()
+    def build(self):
+        self.build_setenv()
         self.shell('ant', cwd=self['SRC_DIR'])
         sync_tree(os.path.join(self['SRC_DIR'], 'dist'),
                   self['INSTALL_DIR'])
