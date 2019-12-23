@@ -244,6 +244,28 @@ By:
 In that case the build script will pick the content of your directory instead of doing an
 automatic checkout. In that case the script does not try to do updates.
 
+Environment
+-----------
+
+In order to add in your environment the result of a given build you can do:
+
+   $ eval `./anod-setenv uxas`
+
+The command in that case add uxas to your path so that it can be used.
+
+If you want to develop on the uxas project. First do an initial build:
+
+   $ ./anod-build uxas
+
+Then modify your env to add into your environment all the dependency needed
+to build uxas:
+
+   $ eval `./anod-setenv uxas --build-env`
+
+Finally launch for example gnatstudio or gps on the uxas project file:
+
+   $ gnatstudio -P <path to your uxas checkout>/src/UxasAll.gpr
+
 Force rebuild
 -------------
 

@@ -41,8 +41,7 @@ class Uxas(spec('common')):
         """Return selected scenario."""
         return self.parsed_qualifier.get('scenario', 'release')
 
-    @Anod.primitive()
-    def build(self):
+    def build_setenv(self):
         self.deps['zeromq'].setenv(shared=False)
         self.deps['cppzmq'].setenv()
         self.deps['pugixml'].setenv()
@@ -54,6 +53,10 @@ class Uxas(spec('common')):
         self.deps['sqlitecpp'].setenv()
         self.deps['boost'].setenv()
         self.deps['czmq'].setenv()
+
+    @Anod.primitive()
+    def build(self):
+        self.build_setenv()
         self.log.info('LIBRARY_PATH: %s', os.environ['LIBRARY_PATH'])
         self.shell('gprbuild', '-j0', '-v', '-p', '-P', 'UxasAll.gpr',
                    '-XSCENARIO=%s' % self.scenario,
