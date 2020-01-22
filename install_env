@@ -26,7 +26,7 @@ if __name__ == '__main__':
         os.environ['PATH'] = "%s:%s" % (vpython_bin, os.environ['PATH'])
         check_call([os.path.join(vpython_bin, 'pip'), 'install', 'wheel'])
         check_call([os.path.join(vpython_bin, 'pip'), 'install',
-                    'git+https://github.com/AdaCore/e3-core.git@e3transition'])
+                    'git+https://github.com/AdaCore/e3-core.git'])
         print('To setup your environment just do:')
         print('export PATH=%s:$PATH' % vpython_bin)
     except Exception as e:
