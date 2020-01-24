@@ -231,6 +231,11 @@ COMMON_PROVISIONING = PROVISIONING_REPOS +
 Vagrant.configure("2") do |config|
   # Base for the virtual machine
   config.vm.box = "ubuntu/bionic64"
+  
+  # Increase the disk size. Was 10GB but building uxas, amase, and uxas-ada fills it.
+  # (Requires installing a plugin: "vagrant plugin install vagrant-disksize".)
+  # 50GB is plenty for builds and development.
+  config.disksize.size = '50GB'
 
   # Specific configuration for Virtual Box
   config.vm.provider "virtualbox" do |vb|
