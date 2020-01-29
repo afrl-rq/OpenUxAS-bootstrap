@@ -27,6 +27,9 @@ To get started with Vagrant, you will first need to:
 2. install a virtual machine provider, preferably VirtualBox, which is available from https://www.virtualbox.org/wiki/Download_Old_Builds_6_0.
    ***WARNING***: Vagrant 2.2.6, the current version of Vagrant, does not support VirtualBox 6.1, the newest version of VirtualBox.
    Please make sure to download and install version 6.0 from https://www.virtualbox.org/wiki/Download_Old_Builds_6_0 and not from www.virtualbox.org/wiki/Downloads.
+3. install a Vagrant plugin named "vagrant-disksize" to allow increasing the virtual machine disk capacity:
+
+    vagrant plugin install vagrant-disksize
 
 > ***Shortcut***: Once this is done, if you want a graphical machine that you can keep using after it is configured, you can mostly forget about the rest of this README, open a terminal (on *NIX machines) or a command prompt (on Windows), navigate to the directory where you've cloned this repository, and run `./build-vagrant-gui`.
 > This will configure a graphical machine and run all of the builds related to OpenUxAS.
