@@ -1,23 +1,28 @@
+from e3.anod.loader import spec
 from e3.anod.spec import Anod
-from e3.archive import unpack_archive
 import os
 
 
-class Java(Anod):
+class Java(spec('common')):
+    """Install latest OpenJDK for x86_64-linux."""
 
     def setenv(self):
-        self.env.add_path(os.path.join(self.build_space.install_dir, 'bin'))
+        self.env.add_path(os.path.join(self.build_space.src_dir, 'bin'))
+
+    @property
+    def build_source_list(self):
+        return [Anod.Source(name='openjdk-13.0.2_linux-x64_bin.tar.gz',
+                            publish=False)]
+
+    @property
+    def source_pkg_build(self):
+        return [
+            self.HTTPSSourceBuilder(
+                name='openjdk-13.0.2_linux-x64_bin.tar.gz',
+                url='https://download.java.net/java/GA/jdk13.0.2/'
+                'd4173c853231432d94f001e99d882ca7/8/GPL/'
+                'openjdk-13.0.2_linux-x64_bin.tar.gz')]
 
     @Anod.primitive()
     def build(self):
-        self.shell('wget', '--no-cookies',
-                   '--no-check-certificate', '--header',
-                   'Cookie: oraclelicense=accept-securebackup-cookie',
-                   'https://download.oracle.com/otn-pub/java/jdk/13.0.1+9/'
-                   'cec27d702aa74d5a8630c65ae61e4305/'
-                   'jdk-13.0.1_linux-x64_bin.tar.gz',
-                   cwd=self.build_space.build_dir)
-        unpack_archive(os.path.join(self.build_space.build_dir,
-                                    'jdk-13.0.1_linux-x64_bin.tar.gz'),
-                       self.build_space.install_dir,
-                       remove_root_dir=True)
+        pass
