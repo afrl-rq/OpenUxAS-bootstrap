@@ -41,6 +41,9 @@ class Uxas(spec('common')):
         """Return selected scenario."""
         return self.parsed_qualifier.get('scenario', 'release')
 
+    def setenv(self):
+        self.env.add_path(os.path.join(self.build_space.install_dir, 'bin'))
+
     def build_setenv(self):
         self.deps['zeromq'].setenv(shared=False)
         self.deps['cppzmq'].setenv()
