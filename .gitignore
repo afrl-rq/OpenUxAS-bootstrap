@@ -2,3 +2,4 @@ sbx
 sbx-env
 vpython
 /.vagrant
+*.log
