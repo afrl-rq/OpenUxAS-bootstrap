@@ -82,6 +82,7 @@ class UxasBuildJob(UxasJob):
             mkdir(self.data.anod_instance.build_space.install_dir)
             Env().store()
             cd(self.data.anod_instance.build_space.build_dir)
+            self.data.anod_instance.jobs = Env().build.cpu.cores
             self.data.anod_instance.build()
             Env().restore()
             self.run_status = ReturnValue.success
