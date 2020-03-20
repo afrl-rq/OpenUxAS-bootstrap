@@ -138,12 +138,16 @@ PROVISIONING_ENV = <<-SHELL
   echo "# install env"
   
   sudo -Hu vagrant cp -R /home/vagrant/bootstrap-src-shared /home/vagrant/bootstrap
+  sudo rm -rf /home/vagrant/bootstrap/.git
 
   cd /home/vagrant/bootstrap
 
   # run as vagrant
   sudo -Hu vagrant python3 install_env
   sudo -Hu vagrant echo "PATH=/home/vagrant/bootstrap/vpython/bin:\\$PATH" >> ~vagrant/.profile
+
+  # This is needed for testing support
+  sudo -Hu vagrant /home/vagrant/bootstrap/vpython/bin/pip install zmq
 
   # After the build, java will be in a nonstandard place, so set the path for it:
   sudo -Hu vagrant echo "PATH=\\$PATH:/home/vagrant/bootstrap/sbx/x86_64-linux/java/install/bin" >> ~vagrant/.profile
@@ -182,7 +186,7 @@ Ubuntu 18.04 OpenUxAS Development Vagrant Box
 This machine has been preconfigured with all dependencies required to build and
 run OpenUxAS. To get started, run the following command:
 
-  cd ~vagrant/bootstrap && python3 anod-build uxas
+  cd ~vagrant/bootstrap && ./anod-build uxas
 
 That will build the C++ version of OpenUxAS. Additional instructions can be 
 found in the README in ~vagrant/bootstrap/README.md (or more easily read on
