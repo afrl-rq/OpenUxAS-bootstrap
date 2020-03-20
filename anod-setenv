@@ -33,6 +33,20 @@ def check_tool(tool):
         sys.exit(1)
 
 
+# Help users who can't remember to use eval.
+BANNER = '''
+# ----------------------------------------------------------------------------
+# If you're seeing this, then you forgot eval!
+#
+# You need to run anot-setenv like this:
+#
+#   eval `./anod-setenv uxas`
+#
+# Otherwise, no changes will be made to your environment.
+# ----------------------------------------------------------------------------
+
+'''
+
 if __name__ == '__main__':
     m = Main()
     m.argument_parser.add_argument(
@@ -82,6 +96,8 @@ if __name__ == '__main__':
     else:
         if hasattr(anod_instance, 'setenv'):
             anod_instance.setenv()
+
+    print(BANNER)
 
     for var, value in os.environ.items():
         if var not in saved_env or saved_env[var] != os.environ[var]:
