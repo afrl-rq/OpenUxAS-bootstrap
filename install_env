@@ -11,13 +11,15 @@ if __name__ == '__main__':
         print("%-24s: Found %s" % (program, program_version.decode('utf-8')))
 
     try:
-        assert sys.version[0] == '3', "Python 3.x required. Found: %s" % sys.version.splitlines()[0]
+        assert sys.version[0] == '3', \
+            "Python 3.x required. Found: %s" % sys.version.splitlines()[0]
         check_version('git')
         check_version('cmake')
         check_version('g++')
         check_version('pkg-config')
 
-        assert os.path.isfile('/usr/include/uuid/uuid.h'), 'Missing uuid.h'
+        if sys.platform == 'linux':
+            assert os.path.isfile('/usr/include/uuid/uuid.h'), 'Missing uuid.h'
 
         # Create python venv with e3-core
         vpython_dir = os.path.join(ROOT_DIR, 'vpython')
