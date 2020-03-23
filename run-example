@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 """
 Script to run OpenUxAS examples.
 """
@@ -9,15 +11,19 @@ import re
 import subprocess
 import sys
 
+from e3.env import Env
+
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+PLATFORM = Env().build.platform
 
 # These control the default directory that will be used for running OpenUxAS
 # or OpenAMASE. They are configured to support the Vagrant machines specified
 # in the OpenUxAS-bootstrap repository.
 DEFAULT_AMASE_DIR = os.path.join(
-    ROOT_DIR, "sbx", "x86_64-linux", "amase", "src")
+    ROOT_DIR, "sbx", PLATFORM, "amase", "src")
 DEFAULT_UXAS_DIR = os.path.join(
-    ROOT_DIR, "sbx", "x86_64-linux", "uxas-release", "src")
+    ROOT_DIR, "sbx", PLATFORM, "uxas-release", "src")
 
 # These control the name of the environment variable that will be checked for
 # the OpenUxAS or OpenAMASE directories.
