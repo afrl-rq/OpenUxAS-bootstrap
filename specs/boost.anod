@@ -32,9 +32,13 @@ class Boost(spec('common')):
                           '--without-icu',
                           '--with-libraries=filesystem,system,regex,date_time']
         self.shell(*bootstrap_args, cwd=self['SRC_DIR'])
+        if self.env.build.os.name == 'darwin':
+            toolset = 'darwin'
+        else:
+            toolset = 'gcc'
         self.shell(os.path.join(self['SRC_DIR'], 'b2'),
                    'link=static',
-                   'toolset=gcc', 'cxxstd=11',
+                   'toolset=%s' % toolset, 'cxxstd=11',
                    'install', cwd=self['SRC_DIR'])
         sync_tree(os.path.join(self['INSTALL_DIR'], 'lib'),
                   os.path.join(self['INSTALL_DIR'], 'lib64'), delete=True)
