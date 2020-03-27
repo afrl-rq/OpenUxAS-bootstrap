@@ -146,9 +146,6 @@ PROVISIONING_ENV = <<-SHELL
   sudo -Hu vagrant python3 install_env
   sudo -Hu vagrant echo "PATH=/home/vagrant/bootstrap/vpython/bin:\\$PATH" >> ~vagrant/.profile
 
-  # This is needed for testing support
-  sudo -Hu vagrant /home/vagrant/bootstrap/vpython/bin/pip install zmq
-
   # After the build, java will be in a nonstandard place, so set the path for it:
   sudo -Hu vagrant echo "PATH=\\$PATH:/home/vagrant/bootstrap/sbx/x86_64-linux/java/src/bin" >> ~vagrant/.profile
 
