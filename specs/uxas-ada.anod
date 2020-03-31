@@ -37,6 +37,9 @@ class UxasAda(spec('common')):
         self.deps['uxas-lmcp'].setenv()
         self.deps['zeromq'].setenv()
 
+    def setenv(self):
+        self.env.add_path(os.path.join(self.build_space.install_dir, 'bin'))
+
     @Anod.primitive()
     def build(self):
         self.build_setenv()
