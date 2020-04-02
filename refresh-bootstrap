@@ -110,3 +110,7 @@ if __name__ == '__main__':
                     install_venv()
                 else:
                     print(NO_CHANGES_MADE)
+
+        else:
+            copy_bootstrap()
+            install_venv()
