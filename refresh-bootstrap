@@ -41,9 +41,11 @@ BOOTSTRAP_COPIED = "I copied `bootstrap-src-shared` to `bootstrap`."
 
 DELETE_SAVED_CMD = ['rm', '-rf', BOOTSTRAP_SAVED]
 DELETE_CMD = ['rm', '-rf', BOOTSTRAP]
+DELETE_GIT_CMD = 'rm -rf .git'.split()
+
 SAVE_CMD = ['mv', BOOTSTRAP, BOOTSTRAP_SAVED]
 COPY_CMD = ['cp', '-R', BOOTSTRAP_SRC, BOOTSTRAP]
-DELETE_GIT_CMD = 'rm -rf .git'.split()
+INSTALL_CMD = 'python3 install_env'.split()
 
 
 def save_bootstrap():
@@ -63,6 +65,12 @@ def copy_bootstrap():
 
     subprocess.run(COPY_CMD)
     subprocess.run(DELETE_GIT_CMD, cwd=BOOTSTRAP)
+
+
+def install_venv():
+    """Install the python venv inside the bootstrap directory."""
+
+    subprocess.run(INSTALL_CMD, cwd=BOOTSTRAP)
 
 
 # Script processing
@@ -89,6 +97,7 @@ if __name__ == '__main__':
                     save_bootstrap()
 
                 copy_bootstrap()
+                install_venv()
             else:
                 if input(DELETE_CONFIRMATION) == 'y':
                     if not args.no_backup:
@@ -97,5 +106,7 @@ if __name__ == '__main__':
 
                     copy_bootstrap()
                     print(BOOTSTRAP_COPIED)
+
+                    install_venv()
                 else:
                     print(NO_CHANGES_MADE)
