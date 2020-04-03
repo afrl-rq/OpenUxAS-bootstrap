@@ -1,0 +1,116 @@
+#! /usr/bin/env python
+
+"""
+Script to refresh the bootstrap directory in the Vagrant machine.
+"""
+
+import argparse
+import os
+import subprocess
+import sys
+
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+BOOTSTRAP = 'bootstrap'
+BOOTSTRAP_SAVED = 'bootstrap-old'
+BOOTSTRAP_SRC = 'bootstrap-src-shared'
+
+DESCRIPTION = f"""\
+Delete `{BOOTSTRAP}` and replace it with a fresh copy of `{BOOTSTRAP_SRC}`\
+"""
+
+
+BOOSTRAP_MSG = f"""\
+You are running this script from inside of {BOOTSTRAP}. Please `cd ~` and
+rerun `{__file__}`.\
+"""
+
+DELETE_CONFIRMATION = f"""\
+Refreshing `{BOOTSTRAP}` will completely reset your build state. This means \
+anod
+will fully redownload and fully rebuild all dependencies and OpenUxAS. Any
+local changes made will be lost.
+
+Are you sure you want to do this? [y|N]
+"""
+
+MOVED_ASIDE = f"Okay. I moved `{BOOTSTRAP}` to `{BOOTSTRAP_SAVED}`."
+
+NO_CHANGES_MADE = "Okay. No changes will be made."
+
+BOOTSTRAP_COPIED = "I copied `bootstrap-src-shared` to `bootstrap`."
+
+DELETE_SAVED_CMD = ['rm', '-rf', BOOTSTRAP_SAVED]
+DELETE_CMD = ['rm', '-rf', BOOTSTRAP]
+DELETE_GIT_CMD = 'rm -rf .git'.split()
+
+SAVE_CMD = ['mv', BOOTSTRAP, BOOTSTRAP_SAVED]
+COPY_CMD = ['cp', '-R', BOOTSTRAP_SRC, BOOTSTRAP]
+INSTALL_CMD = 'python3 install_env'.split()
+
+
+def save_bootstrap():
+    """Back up the bootstrap directory, deleting prior backup as needed."""
+
+    if os.path.exists(BOOTSTRAP_SAVED):
+        subprocess.run(DELETE_SAVED_CMD)
+
+    subprocess.run(SAVE_CMD)
+
+
+def copy_bootstrap():
+    """Copy boostrap source to bootstrap, deleting bootstrap as needed."""
+
+    if os.path.exists(BOOTSTRAP):
+        subprocess.run(DELETE_CMD)
+
+    subprocess.run(COPY_CMD)
+    subprocess.run(DELETE_GIT_CMD, cwd=BOOTSTRAP)
+
+
+def install_venv():
+    """Install the python venv inside the bootstrap directory."""
+
+    subprocess.run(INSTALL_CMD, cwd=BOOTSTRAP)
+
+
+# Script processing
+if __name__ == '__main__':
+    ap = argparse.ArgumentParser(description=DESCRIPTION)
+
+    ap.add_argument("--no-prompt", dest="no_prompt", default=False,
+                    action="store_true",
+                    help=f"refresh `{BOOTSTRAP}` without prompting first")
+    ap.add_argument("--no-backup", dest="no_backup", default=False,
+                    action="store_true",
+                    help=f"do not back up `{BOOTSTRAP}` to " +
+                         f"`{BOOTSTRAP_SAVED}`")
+
+    args = ap.parse_args()
+
+    if ROOT_DIR.endswith("/" + BOOTSTRAP):
+        print(BOOSTRAP_MSG, file=sys.stderr)
+        exit(1)
+    else:
+        if os.path.exists(BOOTSTRAP):
+            if args.no_prompt:
+                if not args.no_backup:
+                    save_bootstrap()
+
+                copy_bootstrap()
+                install_venv()
+            else:
+                if input(DELETE_CONFIRMATION) == 'y':
+                    if not args.no_backup:
+                        save_bootstrap()
+                        print(MOVED_ASIDE)
+
+                    copy_bootstrap()
+                    print(BOOTSTRAP_COPIED)
+
+                    install_venv()
+                else:
+                    print(NO_CHANGES_MADE)
+
+        else:
+            copy_bootstrap()
+            install_venv()

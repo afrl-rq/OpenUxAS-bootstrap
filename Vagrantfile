@@ -137,13 +137,9 @@ PROVISIONING_ENV = <<-SHELL
   echo "# ------------------------------------------------------ #"
   echo "# install env"
   
-  sudo -Hu vagrant cp -R /home/vagrant/bootstrap-src-shared /home/vagrant/bootstrap
-  sudo rm -rf /home/vagrant/bootstrap/.git
+  sudo -Hu vagrant cp /home/vagrant/bootstrap-src-shared/refresh-bootstrap /home/vagrant
+  sudo -Hu vagrant python3 refresh-bootstrap --no-prompt
 
-  cd /home/vagrant/bootstrap
-
-  # run as vagrant
-  sudo -Hu vagrant python3 install_env
   sudo -Hu vagrant echo "PATH=/home/vagrant/bootstrap/vpython/bin:\\$PATH" >> ~vagrant/.profile
 
   # After the build, java will be in a nonstandard place, so set the path for it:

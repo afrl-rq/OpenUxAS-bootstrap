@@ -37,7 +37,7 @@ if __name__ == "__main__":
             ]
         )
         check_call([os.path.join(vpython_bin, "pip"), "install", "pyzmq"])
-        print("To setup your environment just do:")
+        print("To set up your environment just do:")
         print("export PATH=%s:$PATH" % vpython_bin)
     except Exception as e:
         print(str(e))
