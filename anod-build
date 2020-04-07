@@ -5,7 +5,7 @@ from e3.anod.action import (Build, DownloadSource, GetSource,
                             InstallSource, Checkout, CreateSource)
 from e3.anod.checkout import CheckoutManager
 from e3.anod.sandbox import SandBox
-from e3.env import Env
+from e3.env import Env, BaseEnv
 from e3.job.walk import Walk
 from e3.job import Job, EmptyJob
 from e3.net.http import HTTPSession
@@ -345,7 +345,8 @@ if __name__ == '__main__':
                        primitive='build',
                        qualifier=m.args.qualifier,
                        sandbox=sbx,
-                       upload=False)
+                       upload=False,
+                       env=BaseEnv.from_env())
     actions = ac.schedule(resolver=ac.always_create_source_resolver)
 
     walker = UxasBuilder(actions, sandbox=sbx, force=m.args.force)
