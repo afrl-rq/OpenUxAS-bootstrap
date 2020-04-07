@@ -345,7 +345,8 @@ if __name__ == '__main__':
                        primitive='build',
                        qualifier=m.args.qualifier,
                        sandbox=sbx,
-                       upload=False)
+                       upload=False,
+                       env=Env())
     actions = ac.schedule(resolver=ac.always_create_source_resolver)
 
     walker = UxasBuilder(actions, sandbox=sbx, force=m.args.force)
