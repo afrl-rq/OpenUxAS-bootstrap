@@ -32,9 +32,13 @@ PROVISIONING_APT = <<-SHELL
   echo " "
   echo "# ------------------------------------------------------ #"
   echo "# apt install -y make cmake, pkg-config, uuid-dev, "
-  echo "#                python3, python3-pip, python3-venv, "
+  echo "#                python3.8, python3-pip, python3-venv, "
   echo "#                libyaml-dev fontconfig libx11-xcb1"
-  DEBIAN_FRONTEND=noninteractive apt-get install -y make cmake pkg-config uuid-dev python3 python3-pip python3-venv libyaml-dev fontconfig libx11-xcb1
+  DEBIAN_FRONTEND=noninteractive apt-get install -y make cmake pkg-config uuid-dev libyaml-dev fontconfig libx11-xcb1 python3.8 python3.8-dev python3.8-distutils python3.8-venv python3-pip
+
+  # Fix python3 to point to 3.8
+  rm /usr/bin/python3
+  ln -s /usr/bin/python3.8 /usr/bin/python3
   echo " "
   echo "# end apt install"
   echo "# ------------------------------------------------------ #"
