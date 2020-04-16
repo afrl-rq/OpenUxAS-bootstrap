@@ -117,24 +117,6 @@ PROVISIONING_DEPENDENCIES = <<-SHELL
   echo "# ------------------------------------------------------ #"
 SHELL
 
-# Currently, we have to patch the formal containers in GNAT community. The
-# changes here are already at the FSF and will be integrated into the next
-# GCC release.
-PROVISIONING_PATCH_COMMUNITY = <<-SHELL
-  echo " "
-  echo "# ------------------------------------------------------ #"
-  echo "# patch gnat community "
-  echo "#"
-
-  cd /opt/gnat
-  echo "Patching using ~vagrant/bootstrap-src-shared/community.patch"
-  patch -p0 < /home/vagrant/bootstrap-src-shared/community.patch
-
-  echo " "
-  echo "# end patch gnat community "
-  echo "# ------------------------------------------------------ #"
-SHELL
-
 # Running install_ and setup_env
 PROVISIONING_ENV = <<-SHELL
   echo " "
@@ -221,7 +203,6 @@ COMMON_PROVISIONING = PROVISIONING_REPOS +
                       PROVISIONING_GNAT_DOWNLOAD +
                       PROVISIONING_DEPENDENCIES +
                       PROVISIONING_ENV +
-                      PROVISIONING_PATCH_COMMUNITY +
                       PROVISIONING_LINKS +
                       PROVISIONING_MOTD
 
