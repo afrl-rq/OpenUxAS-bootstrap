@@ -1,20 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# To use:
-# `vagrant up uxas-contained` and `vagrant ssh uxas-contained`
-
-# To more easily manage shared provisioning between the machine configurations,
-# I'm defining the bits of provisioning here in constants.
-#
-# There are two machines:
-# 1. uxas-shared - this machine maps local directories containing to satisfy
-#                  various dependencies. It's suitable for development and to
-#                  accelerate testing of instances.
-#
-# 2. uxas-contained - this machine redownloads everything every time and maps
-#                     no local directories. It's suitable for one-shot use and
-#                     to test the build on a fresh machine.
+# See README.md, in the same directory as this Vagrantfile.
 
 # Basic software install via apt (and pip)
 PROVISIONING_APT = <<-SHELL
@@ -31,9 +18,11 @@ PROVISIONING_APT = <<-SHELL
 
   echo " "
   echo "# ------------------------------------------------------ #"
-  echo "# apt install -y make cmake, pkg-config, uuid-dev, "
-  echo "#                python3.8, python3-pip, python3-venv, "
-  echo "#                libyaml-dev fontconfig libx11-xcb1"
+  echo "# apt install -y make cmake pkg-config uuid-dev "
+  echo "#                libyaml-dev fontconfig libx11-xcb1 "
+  echo "#                python3.8 python3.8-dev "
+  echo "#                python3.8-distutils python3.8-venv "
+  echo "#                python3-pip"
   DEBIAN_FRONTEND=noninteractive apt-get install -y make cmake pkg-config uuid-dev libyaml-dev fontconfig libx11-xcb1 python3.8 python3.8-dev python3.8-distutils python3.8-venv python3-pip
 
   # Fix python3 to point to 3.8
@@ -214,10 +203,9 @@ Vagrant.configure("2") do |config|
   # Base for the virtual machine
   config.vm.box = "ubuntu/bionic64"
   
-  # Increase the disk size. Was 10GB but building uxas, amase, and uxas-ada fills it.
-  # (Requires installing a plugin: "vagrant plugin install vagrant-disksize".)
-  # 50GB is plenty for builds and development.
-  config.disksize.size = '50GB'
+  if Vagrant.has_plugin?("vagrant-vbguest")
+    config.vbguest.auto_update = false
+  end
 
   # Specific configuration for Virtual Box
   config.vm.provider "virtualbox" do |vb|
@@ -239,22 +227,43 @@ Vagrant.configure("2") do |config|
   # As a compromise, see if gnat community has already been downloaded. If so,
   # we map that into the VM, where we test for the installer before downloading
   # it again.
-  if File.exist?("../software/gnat_community/gnat-bin") then
-    config.vm.synced_folder "../software/gnat_community", "/home/vagrant/software/gnat_community"
+  COMMUNITY_FOLDER = "../software/gnat_community"
+  if File.exist?(COMMUNITY_FOLDER) then
+    config.vm.synced_folder COMMUNITY_FOLDER, "/home/vagrant/software/gnat_community"
   end
 
   # Common provisioning
   config.vm.provision "shell", inline: PROVISIONING_APT
 
-  # This VM is self-contained: it doesn't need and doesn't map any local files.
+  # This defines the non-graphical VM. Does not depend on plugins, to keep the
+  # VM build as fast as possible.
   config.vm.define "uxas" do |uxas|
     uxas.vm.provision "shell", inline: COMMON_PROVISIONING
   end
 
-  # This VM is self-contained: it doesn't need and doesn't map any local files.
+  # This defines the graphical VM. Does attempt to use plugins, because they
+  # are needed/useful.
   config.vm.define "uxas-gui" do |uxas_gui|
     # Specific configuration for Virtual Box
     uxas_gui.vm.provider "virtualbox" do |vb_gui|
+      if Vagrant.has_plugin?("vagrant-vbguest")
+        uxas_gui.vbguest.auto_update = true
+      else
+        puts "** WARNING **: You really should install vagrant-vbguest:"
+        puts "  `vagrant plugin install vagrant-vbguest`"
+      end
+
+      # Increase the disk size. Was 10GB but building uxas, amase, and uxas-ada
+      # fills it. Requires installing a plugin: 
+      #   `vagrant plugin install vagrant-disksize`
+      # 50GB is plenty for builds and development.
+      if Vagrant.has_plugin?("vagrant-disksize")
+        uxas_gui.disksize.size = '50GB'
+      else
+        puts "** WARNING **: You really should install vagrant-disksize:"
+        puts "  `vagrant plugin install vagrant-disksize`"
+      end
+
       # Controls whether or not the VirtualBox GUI is displayed when booting 
       # the machine
       vb_gui.gui = true
