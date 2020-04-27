@@ -20,14 +20,11 @@ PROVISIONING_APT = <<-SHELL
   echo "# ------------------------------------------------------ #"
   echo "# apt install -y make cmake pkg-config uuid-dev "
   echo "#                libyaml-dev fontconfig libx11-xcb1 "
-  echo "#                python3.8 python3.8-dev "
-  echo "#                python3.8-distutils python3.8-venv "
+  echo "#                python3 python3-dev "
+  echo "#                python3-distutils python3-venv "
   echo "#                python3-pip"
-  DEBIAN_FRONTEND=noninteractive apt-get install -y make cmake pkg-config uuid-dev libyaml-dev fontconfig libx11-xcb1 python3.8 python3.8-dev python3.8-distutils python3.8-venv python3-pip
+  DEBIAN_FRONTEND=noninteractive apt-get install -y make cmake pkg-config uuid-dev libyaml-dev fontconfig libx11-xcb1 libx11-6 python3 python3-dev python3-distutils python3-venv python3-pip
 
-  # Fix python3 to point to 3.8
-  rm /usr/bin/python3
-  ln -s /usr/bin/python3.8 /usr/bin/python3
   echo " "
   echo "# end apt install"
   echo "# ------------------------------------------------------ #"
@@ -201,7 +198,10 @@ COMMON_PROVISIONING = PROVISIONING_REPOS +
 # you're doing.
 Vagrant.configure("2") do |config|
   # Base for the virtual machine
-  config.vm.box = "ubuntu/bionic64"
+  #
+  # Using bento's build because the ubuntu-provided machine doesn't provide
+  # build-in support for virtualbox.
+  config.vm.box = "bento/ubuntu-20.04"
   
   if Vagrant.has_plugin?("vagrant-vbguest")
     config.vbguest.auto_update = false
@@ -251,17 +251,6 @@ Vagrant.configure("2") do |config|
       else
         puts "** WARNING **: You really should install vagrant-vbguest:"
         puts "  `vagrant plugin install vagrant-vbguest`"
-      end
-
-      # Increase the disk size. Was 10GB but building uxas, amase, and uxas-ada
-      # fills it. Requires installing a plugin: 
-      #   `vagrant plugin install vagrant-disksize`
-      # 50GB is plenty for builds and development.
-      if Vagrant.has_plugin?("vagrant-disksize")
-        uxas_gui.disksize.size = '50GB'
-      else
-        puts "** WARNING **: You really should install vagrant-disksize:"
-        puts "  `vagrant plugin install vagrant-disksize`"
       end
 
       # Controls whether or not the VirtualBox GUI is displayed when booting 
