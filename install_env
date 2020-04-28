@@ -26,7 +26,7 @@ if __name__ == "__main__":
         # Create python venv with e3-core
         vpython_dir = os.path.join(ROOT_DIR, "vpython")
         vpython_bin = os.path.join(vpython_dir, "bin")
-        check_call([sys.executable, "-m", "venv", vpython_dir])
+        check_call([sys.executable, "-m", "venv", "--clear", vpython_dir])
         os.environ["PATH"] = "%s:%s" % (vpython_bin, os.environ["PATH"])
         check_call([os.path.join(vpython_bin, "pip"), "install", "wheel"])
         check_call(
