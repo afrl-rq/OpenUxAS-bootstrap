@@ -172,7 +172,7 @@ PROVISIONING_GUI = <<-SHELL
   echo " "
   echo "# ------------------------------------------------------ #"
   echo "# apt-get install ubuntu-desktop "
-  DEBIAN_FRONTEND=noninteractive apt-get install -y ubuntu-desktop virtualbox-guest-dkms
+  DEBIAN_FRONTEND=noninteractive apt-get install -y ubuntu-desktop libncurses5 virtualbox-guest-dkms
   echo "# end apt-get install ubuntu-desktop "
   echo "# ------------------------------------------------------ #"
 
