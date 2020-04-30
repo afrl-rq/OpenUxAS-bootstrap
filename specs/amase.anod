@@ -57,6 +57,15 @@ class AMASE(spec('common')):
             result = os.path.join(result, subdir)
         return result
 
+    def setenv(self):
+        self.env.add_path(os.path.join(self.build_space.install_dir, 'bin'))
+
+        # Expose directories related to UXAS so that the user can more readily
+        # work with the result of the build.
+        os.environ['AMASE_BUILD_DIR'] = self.build_space.build_dir
+        os.environ['AMASE_SOURCE_DIR'] = self.build_space.src_dir
+        os.environ['AMASE_INSTALL_DIR'] = self.build_space.install_dir
+
     @Anod.primitive()
     def build(self):
         self.deps['java'].setenv()
