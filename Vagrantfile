@@ -122,44 +122,19 @@ PROVISIONING_ENV = <<-SHELL
   echo "# ------------------------------------------------------ #"
 SHELL
 
-# Set some symlinks to make it easier to get to the UxAS-related repos
-PROVISIONING_LINKS = <<-SHELL
-  echo " "
-  echo "# ------------------------------------------------------ #"
-  echo "# creating links"
-  cd /home/vagrant
-
-  sudo -u vagrant mkdir -p uxas
-
-  cd uxas
-
-  # run as vagrant
-  sudo -u vagrant ln -fs ~vagrant/bootstrap/sbx/vcs/openuxas OpenUxAS
-  sudo -u vagrant ln -fs ~vagrant/bootstrap/sbx/vcs/amase OpenAMASE
-  sudo -u vagrant ln -fs ~vagrant/bootstrap/sbx/vcs/lmcpgen LmcpGen
-
-  echo " "
-  echo "# end creating links"
-  echo "# ------------------------------------------------------ #"
-SHELL
-
 MOTD_MESSAGE = <<-SHELL
 -------------------------------------------------------------------------------
-Ubuntu 18.04 OpenUxAS Development Vagrant Box
+Ubuntu 20.04 OpenUxAS Development Vagrant Box
 -------------------------------------------------------------------------------
 
 This machine has been preconfigured with all dependencies required to build and
 run OpenUxAS. To get started, run the following command:
 
-  cd ~vagrant/bootstrap && ./anod-build uxas
+  cd ~/bootstrap && ./anod-build uxas
 
 That will build the C++ version of OpenUxAS. Additional instructions can be 
-found in the README in ~vagrant/bootstrap/README.md (or more easily read on
+found in the README in ~/bootstrap/README.md (or more easily read on
 github at https://github.com/AdaCore/OpenUxAS-bootstrap).
-
-After uxas is built for the first time, the links under ~vagrant/uxas can be
-used to quickly navigate to the OpenUxAS, OpenAMASE, or LMCPgen repositories.
-
 
 SHELL
 
@@ -189,7 +164,6 @@ COMMON_PROVISIONING = PROVISIONING_REPOS +
                       PROVISIONING_GNAT_DOWNLOAD +
                       PROVISIONING_DEPENDENCIES +
                       PROVISIONING_ENV +
-                      PROVISIONING_LINKS +
                       PROVISIONING_MOTD
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
