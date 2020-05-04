@@ -286,8 +286,6 @@ Vagrant.configure("2") do |config|
   # This defines the non-graphical VM. Does not depend on plugins, to keep the
   # VM build as fast as possible.
   config.vm.define "uxas" do |uxas|
-
-    config.vm.synced_folder "../OpenUxAS", "/home/vagrant/software/OpenUxAS"
     uxas.vm.provision "shell", inline: COMMON_PROVISIONING
   end
 
