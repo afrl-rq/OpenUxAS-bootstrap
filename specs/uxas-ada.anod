@@ -61,5 +61,5 @@ class UxasAda(spec('common')):
                    '--relocate-build-tree',
                    cwd=self.build_space.build_dir)
         mkdir(os.path.join(self.build_space.install_dir, 'bin'))
-        cp(os.path.join(self.build_space.build_dir, 'demo'),
+        cp(os.path.join(self.build_space.build_dir, 'uxas-ada'),
            os.path.join(self.build_space.install_dir, 'bin'))
