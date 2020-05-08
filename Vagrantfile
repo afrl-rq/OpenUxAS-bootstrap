@@ -4,16 +4,21 @@
 # See README.md, in the same directory as this Vagrantfile.
 
 # This block is loaded into the shell before any other commands.
+#
+# This defines the logfile to which we write
+VAGRANT_LOGFILE = "/home/vagrant/vagrant-provisioning-log.txt"
+
+# Here's the logging function; the constant above is embedded directly.
 LOG_REPORT_FUNCTION = <<-SHELL
-  touch /home/vagrant/log.txt
-  chown vagrant:vagrant /home/vagrant/log.txt
+  touch #{VAGRANT_LOGFILE}
+  chown vagrant:vagrant #{VAGRANT_LOGFILE}
 
   log_report() {
     if [ $1 != "echo" ]; then
-      echo $@ >> /home/vagrant/log.txt
+      echo $@ >> #{VAGRANT_LOGFILE}
     fi
 
-    $@ >> /home/vagrant/log.txt 2>&1
+    $@ >> #{VAGRANT_LOGFILE} 2>&1
 
     RET=$?
 
