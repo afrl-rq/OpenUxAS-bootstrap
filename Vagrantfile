@@ -3,6 +3,47 @@
 
 # See README.md, in the same directory as this Vagrantfile.
 
+# This block is loaded into the shell before any other commands.
+#
+# This defines the logfile to which we write
+VAGRANT_LOGFILE = "/home/vagrant/vagrant-provisioning-log.txt"
+
+# Here's the logging function; the constant above is embedded directly.
+LOG_REPORT_FUNCTION = <<-SHELL
+  touch #{VAGRANT_LOGFILE}
+  chown vagrant:vagrant #{VAGRANT_LOGFILE}
+
+  log_report() {
+    if [ $1 != "echo" ]; then
+      echo $@ >> #{VAGRANT_LOGFILE}
+    fi
+
+    $@ >> #{VAGRANT_LOGFILE} 2>&1
+
+    RET=$?
+
+    if [ $RET -ne 0 ]; then
+        echo "[Error]   $@"
+    else
+        case $1 in
+            echo|cd) ;;
+            *) echo "[Success] $@" ;;
+        esac
+    fi
+
+    return $RET
+  }
+
+  export DEBIAN_FRONTEND=noninteractive
+SHELL
+
+# Write an entry for the log that indicates the date.
+PROVISIONING_DATE = <<-SHELL
+  echo "# ------------------------------------------------------ #"
+  echo "# Starting provisioning at `date`"
+  echo "# ------------------------------------------------------ #"
+SHELL
+
 # Basic software install via apt (and pip)
 PROVISIONING_APT = <<-SHELL
   # ---------
@@ -10,8 +51,8 @@ PROVISIONING_APT = <<-SHELL
   echo " "
   echo "# ------------------------------------------------------ #"
   echo "# Apt Update & Upgrade "
-  DEBIAN_FRONTEND=noninteractive apt-get update
-  DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
+  apt-get update
+  apt-get -y upgrade
   echo " "
   echo "# End Apt Update & Upgrade"
   echo "# ------------------------------------------------------ #"
@@ -23,7 +64,7 @@ PROVISIONING_APT = <<-SHELL
   echo "#                python3 python3-dev "
   echo "#                python3-distutils python3-venv "
   echo "#                python3-pip"
-  DEBIAN_FRONTEND=noninteractive apt-get install -y make cmake pkg-config uuid-dev libyaml-dev fontconfig libx11-xcb1 libx11-6 python3 python3-dev python3-distutils python3-venv python3-pip
+  apt-get install -y make cmake pkg-config uuid-dev libyaml-dev fontconfig libx11-xcb1 libx11-6 python3 python3-dev python3-distutils python3-venv python3-pip
 
   echo " "
   echo "# end apt install"
@@ -122,44 +163,20 @@ PROVISIONING_ENV = <<-SHELL
   echo "# ------------------------------------------------------ #"
 SHELL
 
-# Set some symlinks to make it easier to get to the UxAS-related repos
-PROVISIONING_LINKS = <<-SHELL
-  echo " "
-  echo "# ------------------------------------------------------ #"
-  echo "# creating links"
-  cd /home/vagrant
-
-  sudo -u vagrant mkdir -p uxas
-
-  cd uxas
-
-  # run as vagrant
-  sudo -u vagrant ln -fs ~vagrant/bootstrap/sbx/vcs/openuxas OpenUxAS
-  sudo -u vagrant ln -fs ~vagrant/bootstrap/sbx/vcs/amase OpenAMASE
-  sudo -u vagrant ln -fs ~vagrant/bootstrap/sbx/vcs/lmcpgen LmcpGen
-
-  echo " "
-  echo "# end creating links"
-  echo "# ------------------------------------------------------ #"
-SHELL
-
 MOTD_MESSAGE = <<-SHELL
+
 -------------------------------------------------------------------------------
-Ubuntu 18.04 OpenUxAS Development Vagrant Box
+Ubuntu 20.04 OpenUxAS Development Vagrant Box
 -------------------------------------------------------------------------------
 
 This machine has been preconfigured with all dependencies required to build and
 run OpenUxAS. To get started, run the following command:
 
-  cd ~vagrant/bootstrap && ./anod-build uxas
+  cd ~/bootstrap && ./anod-build uxas
 
 That will build the C++ version of OpenUxAS. Additional instructions can be 
-found in the README in ~vagrant/bootstrap/README.md (or more easily read on
+found in the README in ~/bootstrap/README.md (or more easily read on
 github at https://github.com/AdaCore/OpenUxAS-bootstrap).
-
-After uxas is built for the first time, the links under ~vagrant/uxas can be
-used to quickly navigate to the OpenUxAS, OpenAMASE, or LMCPgen repositories.
-
 
 SHELL
 
@@ -172,7 +189,7 @@ PROVISIONING_GUI = <<-SHELL
   echo " "
   echo "# ------------------------------------------------------ #"
   echo "# apt-get install ubuntu-desktop "
-  DEBIAN_FRONTEND=noninteractive apt-get install -y ubuntu-desktop libncurses5 virtualbox-guest-dkms
+  apt-get install -y ubuntu-desktop libncurses5 virtualbox-guest-dkms
   echo "# end apt-get install ubuntu-desktop "
   echo "# ------------------------------------------------------ #"
 
@@ -184,13 +201,49 @@ PROVISIONING_GUI = <<-SHELL
   echo "# ------------------------------------------------------ #"
 SHELL
 
+
+# This function will take our provisioning fragments and turn them into a
+# sequence of commands run through `log_report`.
+#
+# Each command must be on a single line, or this will not work. Comment and
+# blank lines are skipped.
+#
+# Simple if statements are also skipped, but this is brittle and should be
+# treated with caution.
+#
+# Commands that redirect their output to files are also skipped.
+def build_logged_commands(commands)
+  script = LOG_REPORT_FUNCTION
+  script += "\n"
+
+  script += commands.split("\n").
+                     reject { |line| line if line.match(/^\s*#/) }.
+                     reject { |line| line if line.match(/^\s*$/) }.
+                     collect { |line|
+                      if line.include?('>>') or
+                         line.match(/^\s*if/) or
+                         line.match(/^\s*fi/) 
+                      then
+                        line
+                      else
+                        'log_report ' + line.strip
+                      end
+                     }.join("\n")
+end
+
+# Initial provisioning
+INIT_PROVISIONING = build_logged_commands(PROVISIONING_DATE +
+                                          PROVISIONING_APT)
+
 # All machines need this provisioning
-COMMON_PROVISIONING = PROVISIONING_REPOS + 
-                      PROVISIONING_GNAT_DOWNLOAD +
-                      PROVISIONING_DEPENDENCIES +
-                      PROVISIONING_ENV +
-                      PROVISIONING_LINKS +
-                      PROVISIONING_MOTD
+COMMON_PROVISIONING = build_logged_commands(PROVISIONING_REPOS + 
+                                            PROVISIONING_GNAT_DOWNLOAD +
+                                            PROVISIONING_DEPENDENCIES +
+                                            PROVISIONING_ENV) + "\n" +
+                                            PROVISIONING_MOTD
+
+# GUI machines need this provisioning
+GUI_PROVISIONING = build_logged_commands(PROVISIONING_GUI)
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (Vagrant supports older styles for
@@ -232,8 +285,8 @@ Vagrant.configure("2") do |config|
     config.vm.synced_folder COMMUNITY_FOLDER, "/home/vagrant/software/gnat_community"
   end
 
-  # Common provisioning
-  config.vm.provision "shell", inline: PROVISIONING_APT
+  # Initial provisioning
+  config.vm.provision "shell", inline: INIT_PROVISIONING
 
   # This defines the non-graphical VM. Does not depend on plugins, to keep the
   # VM build as fast as possible.
@@ -267,6 +320,6 @@ Vagrant.configure("2") do |config|
     end
 
     uxas_gui.vm.provision "shell", inline: COMMON_PROVISIONING
-    uxas_gui.vm.provision "shell", inline: PROVISIONING_GUI
+    uxas_gui.vm.provision "shell", inline: GUI_PROVISIONING
   end
 end
