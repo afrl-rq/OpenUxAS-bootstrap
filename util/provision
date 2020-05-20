@@ -66,9 +66,8 @@ GNAT_LINK = ('https://community.download.adacore.com/v1/'
 
 GNAT_DOWNLOAD = {
     'description': 'Downloading GNAT community',
-    'command': ['wget',
-                '-nv',
-                '-O',
+    'command': ['curl',
+                '-o',
                 GNAT_BIN,
                 GNAT_LINK]
 }
@@ -82,7 +81,6 @@ GNAT_INSTALLER_CLONE = {
     'description': 'Cloning GNAT community install script',
     'command': ['git',
                 'clone',
-                '--quiet',
                 GNAT_INSTALLER_LINK]
 }
 GNAT_INSTALLER_BIN = 'install_package.sh'
