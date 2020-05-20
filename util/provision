@@ -200,8 +200,8 @@ def print_env_updates() -> None:
                consider also adding the following to your profile:
                """))
     print(" ")
-    print("    eval `python3 anod-setenv uxas`")
-    print("    eval `python3 anod-setenv amase`")
+    print("    eval `python3 ~/bootstrap/anod-setenv uxas`")
+    print("    eval `python3 ~/bootstrap/anod-setenv amase`")
     print(" ")
 
 
