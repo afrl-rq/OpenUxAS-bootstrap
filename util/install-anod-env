@@ -4,6 +4,7 @@ import sys
 from subprocess import check_output, check_call, STDOUT
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+CWD = os.getcwd()
 
 if __name__ == "__main__":
 
@@ -24,7 +25,7 @@ if __name__ == "__main__":
             assert os.path.isfile("/usr/include/uuid/uuid.h"), "Missing uuid.h"
 
         # Create python venv with e3-core
-        vpython_dir = os.path.join(ROOT_DIR, "vpython")
+        vpython_dir = os.path.join(CWD, "vpython")
         vpython_bin = os.path.join(vpython_dir, "bin")
         check_call([sys.executable, "-m", "venv", "--clear", vpython_dir])
         os.environ["PATH"] = "%s:%s" % (vpython_bin, os.environ["PATH"])

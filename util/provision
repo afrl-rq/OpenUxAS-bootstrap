@@ -97,11 +97,10 @@ GNAT_INSTALL = {
 }
 
 VENV_INSTALL = {
-    'description': 'Install the virtual environment for anod',
+    'description': 'Install the environment for anod',
     'command': ['python3',
-                'install_env']
+                'util/install-anod-env']
 }
-
 VENV_DIR = os.path.join(CWD, "vpython")
 
 trial = True
