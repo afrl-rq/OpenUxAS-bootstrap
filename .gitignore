@@ -4,3 +4,4 @@ vpython
 /.vagrant
 *.log
 /provisioning
+.mypy_cache
