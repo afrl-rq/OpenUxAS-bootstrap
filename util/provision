@@ -27,7 +27,8 @@ if TYPE_CHECKING:
 
 # Directory in which this script is executing.
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROVISION_DIR = os.path.join(ROOT_DIR, "provisioning")
+CWD = os.getcwd()
+PROVISION_DIR = os.path.join(CWD, "provisioning")
 SOFTWARE_DIR = os.path.join(PROVISION_DIR, "software")
 
 APT_UPDATE = {
@@ -59,9 +60,9 @@ APT_INSTALL = {
 
 GNAT_DIR = os.path.join(SOFTWARE_DIR, "gnat_community")
 GNAT_BIN = 'gnat-bin'
-GNAT_LINK = ('https://community.download.adacore.com/v1/' +
-             '0cd3e2a668332613b522d9612ffa27ef3eb0815b?' +
-             'filename=gnat-community-2019-20190517-x86_64-linux-bin')
+GNAT_LINK = ('https://community.download.adacore.com/v1/'
+             '4d99b7b2f212c8efdab2ba8ede474bb9fa15888d?'
+             'filename=gnat-2020-20200429-x86_64-linux-bin')
 
 GNAT_DOWNLOAD = {
     'description': 'Downloading GNAT community',
@@ -86,7 +87,7 @@ GNAT_INSTALLER_CLONE = {
 }
 GNAT_INSTALLER_BIN = 'install_package.sh'
 
-GNAT_INSTALL_DIR = '/opt/gnat'
+GNAT_INSTALL_DIR = os.path.join(SOFTWARE_DIR, 'gnat')
 GNAT_INSTALL = {
     'description': 'Install GNAT community',
     'command': ['sh',
@@ -97,21 +98,26 @@ GNAT_INSTALL = {
 
 VENV_INSTALL = {
     'description': 'Install the virtual environment for anod',
-    'command': ['python',
+    'command': ['python3',
                 'install_env']
 }
 
+VENV_DIR = os.path.join(CWD, "vpython")
 
 trial = True
 
 
-def wrap(s: str) -> str:
+def error_wrap(s: str) -> str:
     return textwrap.fill(textwrap.dedent(s), width=71, break_long_words=False,
                          subsequent_indent=" "*8)
 
 
+def wrap(s: str) -> str:
+    return textwrap.fill(textwrap.dedent(s), width=79)
+
+
 def log_command(described_command: Dict, cwd: Optional[str] = None) -> None:
-    logging.info(wrap(described_command['description']))
+    logging.info(error_wrap(described_command['description']))
     process_command(described_command['command'], cwd)
 
 
@@ -119,7 +125,7 @@ def format_command(command: List[str], cwd: Optional[str] = None) -> str:
     if cwd is not None:
         # Perhaps a bit awkward, but illustrates what we will do and is also
         # valid execution syntax in the shell.
-        return "(cd {} && {})".format(os.path.relpath(cwd, ROOT_DIR),
+        return "(cd {} && {})".format(os.path.relpath(cwd, CWD),
                                       " ".join(command))
     else:
         return " ".join(command)
@@ -147,7 +153,7 @@ def install_initial_dependencies() -> int:
 def install_gnat() -> int:
     if trial:
         # This is a bit awkward, but illustrates what we will do.
-        print("mkdir -p " + os.path.relpath(GNAT_DIR, ROOT_DIR))
+        print("mkdir -p " + os.path.relpath(GNAT_DIR, CWD))
     else:
         pathlib.Path(GNAT_DIR).mkdir(parents=True, exist_ok=True)
 
@@ -159,9 +165,9 @@ def install_gnat() -> int:
         if os.path.exists(GNAT_INSTALLER_DIR):
             logging.error(wrap(
                 f"""\
-                {os.path.relpath(GNAT_INSTALLER_DIR, ROOT_DIR)} exists but does
-                not contain {os.path.relpath(GNAT_INSTALLER_BIN, ROOT_DIR)}.
-                Please remove {os.path.relpath(GNAT_INSTALLER_DIR, ROOT_DIR)}
+                {os.path.relpath(GNAT_INSTALLER_DIR, CWD)} exists but does
+                not contain {os.path.relpath(GNAT_INSTALLER_BIN, CWD)}.
+                Please remove {os.path.relpath(GNAT_INSTALLER_DIR, CWD)}
                 and try again.
                 """))
             return 1
@@ -177,6 +183,26 @@ def install_venv() -> int:
     log_command(VENV_INSTALL)
 
     return 0
+
+
+def print_env_updates() -> None:
+    print(" ")
+    print(wrap("""\
+               Before attempting to build OpenUxAS, you need to update your
+               PATH. You should add at least the following to your profile:
+               """))
+    print(" ")
+    print(f"    PATH={VENV_DIR}/bin:$PATH")
+    print(f"    PATH={GNAT_DIR}/bin:$PATH")
+    print(" ")
+    print(wrap("""\
+               To make working with anod's output more comfortable, you should
+               consider also adding the following to your profile:
+               """))
+    print(" ")
+    print("    eval `python3 anod-setenv uxas`")
+    print("    eval `python3 anod-setenv amase`")
+    print(" ")
 
 
 STREAM_FMT = "%(levelname)-8s %(message)s"
@@ -245,10 +271,12 @@ if __name__ == '__main__':
         fileHandler.setLevel(min(level, logging.DEBUG))
         logging.getLogger("").addHandler(fileHandler)
 
-    logging.debug("Debug message")
+    logging.debug("CWD:" + CWD)
 
     trial = args.dry_run
 
     install_initial_dependencies()
     install_gnat()
     install_venv()
+
+    print_env_updates()
