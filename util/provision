@@ -32,13 +32,15 @@ SOFTWARE_DIR = os.path.join(PROVISION_DIR, "software")
 
 APT_UPDATE = {
     'description': 'Updating apt',
-    'command': ["apt",
-                "update"]
+    'command': ['sudo',
+                'apt',
+                'update']
 }
 
 APT_INSTALL = {
     'description': 'Installing dependencies',
-    'command': ['apt',
+    'command': ['sudo',
+                'apt',
                 'install',
                 '-y',
                 'make',
