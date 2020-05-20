@@ -66,8 +66,8 @@ GNAT_LINK = ('https://community.download.adacore.com/v1/'
 
 GNAT_DOWNLOAD = {
     'description': 'Downloading GNAT community',
-    'command': ['curl',
-                '-o',
+    'command': ['wget',
+                '-O',
                 GNAT_BIN,
                 GNAT_LINK]
 }
