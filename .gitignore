@@ -3,3 +3,4 @@ sbx-env
 vpython
 /.vagrant
 *.log
+/provisioning
