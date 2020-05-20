@@ -33,17 +33,17 @@ if ! command -v git 1>/dev/null 2>&1; then
   exit 1
 fi
 
-if ! command -v python 1>/dev/null 2>&1; then
+if ! command -v python3 1>/dev/null 2>&1; then
   { echo
     colorize 1 "WARNING"
-    echo ": python is not installed, can't continue."
+    echo ": python3 is not installed, can't continue."
     echo
   } >&2
   exit 1
 fi
 
-PYTHON_MAJOR_VERSION=`python -c 'import sys; print(sys.version_info[0])'`
-PYTHON_MINOR_VERSION=`python -c 'import sys; print(sys.version_info[1])'`
+PYTHON_MAJOR_VERSION=`python3 -c 'import sys; print(sys.version_info[0])'`
+PYTHON_MINOR_VERSION=`python3 -c 'import sys; print(sys.version_info[1])'`
 
 if ((10#${PYTHON_MAJOR_VERSION} < 3)); then
   { echo
@@ -82,4 +82,4 @@ fi
 
 checkout "${GITHUB}/${BOOTSTRAP_FORK}" "${BOOTSTRAP_ROOT}"
 
-(cd "${BOOTSTRAP_ROOT}" && python util/provision --log-file provisioning.log)
+(cd "${BOOTSTRAP_ROOT}" && python3 util/provision --log-file provisioning.log)
