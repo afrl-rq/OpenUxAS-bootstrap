@@ -1,0 +1,169 @@
+#! /usr/bin/env python
+
+from __future__ import annotations
+
+from e3.main import Main
+from e3.os.process import Run
+import e3.log
+
+import logging
+import os
+import pathlib
+
+from support.arguments import (add_logging_group,
+                               add_interactive_group,
+                               add_update_group,
+                               add_package_group,
+                               add_dry_run_argument,
+                               add_print_env_argument)
+from support.commands import Command, run_command_and_exit_on_fail
+from support.log import configure_logging, fix_e3_loglevel
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import (
+        Dict,
+        List,
+    )
+
+# Directory in which this script is executing.
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+CWD = os.getcwd()
+SOFTWARE_DIR = os.path.join(CWD, "software")
+
+APT_UPDATE = Command(
+    cmd=['sudo',
+         'apt',
+         'update'],
+    description='Updating apt',
+)
+
+APT_INSTALL = Command(
+    cmd=['sudo',
+         'apt',
+         'install',
+         '-y',
+         'fontconfig',
+         'libx11-xcb1',
+         'libx11-6'],
+    description='Installing dependencies',
+)
+
+GNAT_DOWNLOAD_DIR = os.path.join(SOFTWARE_DIR, "gnat_community")
+GNAT_DOWNLOAD_FILE = 'gnat-bin'
+GNAT_DOWNLOAD_LINK = ('https://community.download.adacore.com/v1/'
+                      '4d99b7b2f212c8efdab2ba8ede474bb9fa15888d?'
+                      'filename=gnat-2020-20200429-x86_64-linux-bin')
+
+GNAT_DOWNLOAD = Command(
+    cmd=['wget',
+         '-O',
+         os.path.join(GNAT_DOWNLOAD_DIR, GNAT_DOWNLOAD_FILE),
+         GNAT_DOWNLOAD_LINK],
+    description='Downloading GNAT community',
+)
+
+GNAT_INSTALLER_LINK = (
+    'https://github.com/AdaCore/gnat_community_install_script')
+GNAT_INSTALLER_DIR = os.path.join(SOFTWARE_DIR,
+                                  'gnat_community_install_script')
+GNAT_INSTALLER_CLONE = Command(
+    cmd=['git',
+         'clone',
+         GNAT_INSTALLER_LINK],
+    description='Cloning GNAT community install script',
+    cwd=SOFTWARE_DIR,
+)
+GNAT_INSTALLER_BIN = 'install_package.sh'
+
+GNAT_INSTALL_DIR = os.path.join(SOFTWARE_DIR, 'gnat')
+GNAT_INSTALL = Command(
+    cmd=['sh',
+         GNAT_INSTALLER_BIN,
+         os.path.join(GNAT_DOWNLOAD_DIR, GNAT_DOWNLOAD_FILE),
+         GNAT_INSTALL_DIR],
+    description='Install GNAT community',
+    cwd=GNAT_INSTALLER_DIR,
+)
+
+
+ENV_COMMANDS = f"""\
+PATH={os.path.join(GNAT_INSTALL_DIR, 'bin')}:$PATH\
+"""
+
+if __name__ == '__main__':
+    m = Main()
+
+    add_print_env_argument(m.argument_parser)
+    add_dry_run_argument(m.argument_parser)
+
+    add_interactive_group(m.argument_parser)
+    add_update_group(m.argument_parser)
+    add_package_group(m.argument_parser)
+
+    download_group = m.argument_parser.add_mutually_exclusive_group()
+    download_group.add_argument(
+        '--download-gnat',
+        dest='download_gnat',
+        action='store_true',
+        default=True,
+        help='download GNAT community',
+    )
+    download_group.add_argument(
+        '--no-download-gnat',
+        dest='download_gnat',
+        action='store_false',
+        help='do not download GNAT community',
+    )
+
+    clone_group = m.argument_parser.add_mutually_exclusive_group()
+    clone_group.add_argument(
+        '--clone-installer',
+        dest='clone_gnat_installer',
+        action='store_true',
+        default=True,
+        help='clone GNAT community installer',
+    )
+    clone_group.add_argument(
+        '--no-clone-installer',
+        dest='clone_gnat_installer',
+        action='store_false',
+        help='do not clone GNAT community installer',
+    )
+
+    m.parse_args(known_args_only=True)
+
+    fix_e3_loglevel(m.args)
+
+    if m.args.print_env:
+        print(ENV_COMMANDS)
+        exit(0)
+
+    if m.args.dry_run:
+        # This is a bit awkward, but illustrates what we will do.
+        print("mkdir -p " + os.path.relpath(GNAT_DOWNLOAD_DIR, CWD))
+    else:
+        pathlib.Path(GNAT_DOWNLOAD_DIR).mkdir(parents=True, exist_ok=True)
+
+    if (m.args.update_apt and
+        (not m.args.interactive or
+         input('Update apt? [Y/n] ') != 'n')):
+        run_command_and_exit_on_fail(APT_UPDATE, m.args.dry_run)
+
+    if (m.args.install_packages and
+        (not m.args.interactive or
+         input('Install packages? [Y/n] ') != 'n')):
+        run_command_and_exit_on_fail(APT_INSTALL, m.args.dry_run)
+
+    if (m.args.download_gnat and
+        (not m.args.interactive or
+         input('Download gnat? [Y/n] ') != 'n')):
+        run_command_and_exit_on_fail(GNAT_DOWNLOAD, m.args.dry_run)
+
+    if (m.args.clone_gnat_installer and
+        (not m.args.interactive or
+         input('Clone gnat installer? [Y/n] ') != 'n')):
+        run_command_and_exit_on_fail(GNAT_INSTALLER_CLONE, m.args.dry_run)
+
+    run_command_and_exit_on_fail(GNAT_INSTALL, m.args.dry_run)

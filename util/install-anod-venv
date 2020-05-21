@@ -1,0 +1,135 @@
+#! /usr/bin/env python
+
+from __future__ import annotations
+
+from e3.main import Main
+from e3.os.process import Run
+import e3.log
+
+import logging
+import os
+import subprocess
+import sys
+
+from support.arguments import (add_logging_group,
+                               add_interactive_group,
+                               add_update_group,
+                               add_package_group,
+                               add_dry_run_argument,
+                               add_print_env_argument)
+from support.commands import Command, run_command_and_exit_on_fail
+from support.log import configure_logging, fix_e3_loglevel
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import (
+        Dict,
+        List,
+    )
+
+# Directory in which this script is executing.
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+CWD = os.getcwd()
+SOFTWARE_DIR = os.path.join(CWD, "software")
+
+APT_UPDATE = Command(
+    cmd=['sudo',
+         'apt',
+         'update'],
+    description='Updating apt',
+)
+
+APT_INSTALL = Command(
+    cmd=['sudo',
+         'apt',
+         'install',
+         '-y',
+         'cmake',
+         'g++',
+         'pkg-config',
+         'uuid-dev',
+         'libyaml-dev',
+         'python3-dev',
+         'python3-distutils',
+         'python3-venv',
+         'python3-pip'],
+    description='Installing dependencies',
+)
+
+VENV_DIR = os.path.join(CWD, 'vpython')
+VENV_PIP = os.path.join(VENV_DIR, 'bin', 'pip')
+VENV_INSTALL = Command(
+    cmd=[sys.executable,
+         '-m',
+         'venv',
+         '--clear',
+         VENV_DIR],
+    description='Create python virtual environment',
+)
+
+WHEEL_INSTALL = Command(
+    cmd=[VENV_PIP,
+         'install',
+         'wheel'],
+    description='Installing wheel in the virtual environment',
+)
+
+E3_INSTALL = Command(
+    cmd=[VENV_PIP,
+         'install',
+         'git+https://github.com/AdaCore/e3-core.git'],
+    description='Installing e3-core in the virtual environment',
+)
+
+ZMQ_INSTALL = Command(
+    cmd=[VENV_PIP,
+         'install',
+         'pyzmq'],
+    description='Install pyzmq in the virtual environment',
+)
+
+
+ENV_COMMANDS = f"""\
+PATH={os.path.join(VENV_DIR, 'bin')}:$PATH\
+"""
+
+if __name__ == '__main__':
+    m = Main()
+
+    add_print_env_argument(m.argument_parser)
+    add_dry_run_argument(m.argument_parser)
+
+    add_interactive_group(m.argument_parser)
+    add_update_group(m.argument_parser)
+    add_package_group(m.argument_parser)
+
+    m.parse_args(known_args_only=True)
+
+    fix_e3_loglevel(m.args)
+
+    if m.args.print_env:
+        print(ENV_COMMANDS)
+        exit(0)
+
+    if os.path.exists(VENV_DIR):
+        logging.critical("Virtual environment already exists in 'vpython'; "
+                         "delete it and try again.")
+        exit(1)
+
+    if (m.args.update_apt and
+        (not m.args.interactive or
+         input('Update apt? [Y/n] ') != 'n')):
+        run_command_and_exit_on_fail(APT_UPDATE, m.args.dry_run)
+
+    if (m.args.install_packages and
+        (not m.args.interactive or
+         input('Install packages? [Y/n] ') != 'n')):
+        run_command_and_exit_on_fail(APT_INSTALL, m.args.dry_run)
+
+    if sys.platform == "linux":
+        assert os.path.isfile("/usr/include/uuid/uuid.h"), "Missing uuid.h"
+
+    run_command_and_exit_on_fail(VENV_INSTALL, m.args.dry_run)
+    run_command_and_exit_on_fail(WHEEL_INSTALL, m.args.dry_run)
+    run_command_and_exit_on_fail(E3_INSTALL, m.args.dry_run)

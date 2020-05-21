@@ -1,0 +1,184 @@
+#! /usr/bin/env python
+
+from __future__ import annotations
+
+import logging
+import os
+import subprocess
+import sys
+import textwrap
+
+from support.arguments import (add_logging_group,
+                               add_interactive_group,
+                               add_dry_run_argument)
+from support.commands import Command, run_command_and_exit_on_fail
+from support.log import configure_logging
+
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import (
+        Dict,
+        List,
+    )
+
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+E3_INSTALL = Command(
+    cmd=[sys.executable,
+         os.path.join(ROOT_DIR, 'install-e3')],
+    description='Install e3-core',
+)
+
+GNAT_INSTALL = Command(
+    cmd=[sys.executable,
+         os.path.join(ROOT_DIR, 'install-gnat')],
+    description='Install gnat',
+)
+
+GNAT_ENV = Command(
+    cmd=GNAT_INSTALL.cmd + ['--print-env'],
+)
+
+VENV_INSTALL = Command(
+    cmd=[sys.executable,
+         os.path.join(ROOT_DIR, 'install-anod-venv')],
+    description='Install anod venv'
+)
+
+VENV_ENV = Command(
+    cmd=VENV_INSTALL.cmd + ['--print-env'],
+)
+
+
+def wrap(s: str) -> str:
+    return textwrap.fill(textwrap.dedent(s), width=79)
+
+
+def pass_args(command: Command) -> Command:
+    command.cmd += sys.argv[1:]
+    return command
+
+
+if __name__ == '__main__':
+    from argparse import ArgumentParser
+
+    argument_parser = ArgumentParser()
+
+    add_dry_run_argument(argument_parser)
+
+    add_logging_group(argument_parser)
+    add_interactive_group(argument_parser)
+
+    e3_group = argument_parser.add_mutually_exclusive_group()
+    e3_group.add_argument(
+        '--e3',
+        dest='install_e3',
+        action='store_true',
+        default=True,
+        help='install e3-core; run `util/install-e3 --help` for additional e3 '
+             'options',
+    )
+    e3_group.add_argument(
+        '--no-e3',
+        dest='install_e3',
+        action='store_false',
+        help='do not install e3-core',
+    )
+
+    gnat_group = argument_parser.add_mutually_exclusive_group()
+    gnat_group.add_argument(
+        '--gnat',
+        dest='install_gnat',
+        action='store_true',
+        default=True,
+        help='install GNAT community; run `util/install-gnat --help` for '
+             'additional gnat options',
+    )
+    gnat_group.add_argument(
+        '--no-gnat',
+        dest='install_gnat',
+        action='store_false',
+        help='do not install GNAT community',
+    )
+
+    anod_group = argument_parser.add_mutually_exclusive_group()
+    anod_group.add_argument(
+        '--anod',
+        dest='install_anod_venv',
+        action='store_true',
+        default=True,
+        help='install anod virtual environment; run `util/install-anod --help`'
+             ' for additional anod options',
+    )
+    anod_group.add_argument(
+        '--no-anod',
+        dest='install_anod_venv',
+        action='store_false',
+        help='do not install anod virtual environment',
+    )
+
+    (args, _) = argument_parser.parse_known_args()
+
+    configure_logging(args)
+    set_no_update = False
+    installed_gnat = False
+    installed_venv = False
+
+    if (args.install_e3 and
+        (not args.interactive or
+         input('Install e3? [Y/n] ') != 'n')):
+        run_command_and_exit_on_fail(pass_args(E3_INSTALL))
+        set_no_update = True
+
+    if (args.install_gnat and
+        (not args.interactive or
+         input('Install GNAT community? [Y/n] ') != 'n')):
+        command = pass_args(GNAT_INSTALL)
+
+        if set_no_update:
+            command.cmd.append('--no-update')
+
+        run_command_and_exit_on_fail(command)
+        set_no_update = True
+        installed_gnat = True
+
+    if ((args.interactive and
+         input('Install anod virtual environment? [Y/n] ') != 'n') or
+            (not args.interactive and args.install_anod_venv)):
+        command = pass_args(VENV_INSTALL)
+
+        if set_no_update:
+            command.cmd.append('--no-update')
+
+        run_command_and_exit_on_fail(command)
+        set_no_update = True
+        installed_venv = True
+
+    if installed_gnat or installed_venv:
+        env_commands = str()
+
+        if installed_gnat:
+            result = subprocess.run(GNAT_ENV.cmd, stdout=subprocess.PIPE)
+            env_commands += ' '*4 + result.stdout.decode(sys.stdout.encoding)
+
+        if installed_venv:
+            result = subprocess.run(VENV_ENV.cmd, stdout=subprocess.PIPE)
+            env_commands += ' '*4 + result.stdout.decode(sys.stdout.encoding)
+
+        print(" ")
+        print(wrap("""\
+                Before attempting to build OpenUxAS, you need to update your
+                PATH. You should add at least the following to your profile:
+                """))
+        print(" ")
+        print(env_commands)
+        print(wrap("""\
+                To make working with anod's output more comfortable, you should
+                consider also adding the following to your profile:
+                """))
+        print(" ")
+        print("    eval `python3 ~/bootstrap/anod-setenv uxas`")
+        print("    eval `python3 ~/bootstrap/anod-setenv amase`")
+        print(" ")
