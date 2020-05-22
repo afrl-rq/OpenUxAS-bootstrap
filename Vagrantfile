@@ -59,12 +59,8 @@ PROVISIONING_APT = <<-SHELL
 
   echo " "
   echo "# ------------------------------------------------------ #"
-  echo "# apt install -y make cmake pkg-config uuid-dev "
-  echo "#                libyaml-dev fontconfig libx11-xcb1 "
-  echo "#                python3 python3-dev "
-  echo "#                python3-distutils python3-venv "
-  echo "#                python3-pip"
-  apt-get install -y make cmake pkg-config uuid-dev libyaml-dev fontconfig libx11-xcb1 libx11-6 python3 python3-dev python3-distutils python3-venv python3-pip
+  echo "# apt install -y git curl"
+  apt-get install -y git curl
 
   echo " "
   echo "# end apt install"
@@ -72,111 +68,48 @@ PROVISIONING_APT = <<-SHELL
 SHELL
 
 # Cloning repos
-PROVISIONING_REPOS = <<-SHELL
-  # -----------
-  # repos setup
-
-  # Run as the vagrant user, so that it'll be easier to mess with
-  # these, later.
-
-  # The dependencies: the gnat community install script
+PROVISIONING_BOOTSTRAP = <<-SHELL
+  echo "# ------------------------------------------------------ #"
   cd /home/vagrant
-  sudo -u vagrant mkdir -p dependencies
+  su -Hu vagrant git clone https://github.com/manthonyaiello/OpenUxAS-bootstrap bootstrap
 
-  echo " "
-  echo "# ------------------------------------------------------ #"
-  echo "# git gnat-community-install-script "
-  cd /home/vagrant/dependencies
-
-  echo "# cloning gnat_community_install_script..."
-  sudo -Hu vagrant git clone --quiet https://github.com/AdaCore/gnat_community_install_script
-  echo " "
-  echo "# end git gnat-community-install-script "
+  cd /home/vagrant/bootstrap
+  su -Hu vagrant python3 util/install --automatic -vv --no-update
   echo "# ------------------------------------------------------ #"
 SHELL
 
-# Downloading GNAT community
-PROVISIONING_GNAT_DOWNLOAD = <<-SHELL
-  # Run as the vagrant user, so that it'll be easier to mess with
-  # these, later.
-  cd /home/vagrant
-  sudo -u vagrant mkdir -p software/gnat_community
-  cd /home/vagrant/software/gnat_community
-
-  if [ ! -f gnat-bin ]; then
-    # download the installer
-    echo " "
-    echo "# ------------------------------------------------------ #"
-    echo "# downloading gnat community "
-    echo "#"
-    echo "# wget the install file"
-    sudo -Hu vagrant wget -nv -O gnat-bin https://community.download.adacore.com/v1/0cd3e2a668332613b522d9612ffa27ef3eb0815b?filename=gnat-community-2019-20190517-x86_64-linux-bin
-    echo " "
-    echo "# end downloading gnat community "
-    echo "# ------------------------------------------------------ #"
-  fi
-SHELL
-
-# Installing GNAT community
-PROVISIONING_DEPENDENCIES = <<-SHELL
-  # ----------------------
-  # gnat community install
-  #
-  echo " "
-  echo "# ------------------------------------------------------ #"
-  echo "# install gnat community "
-  echo "#"
-
-  # run the install script
-  echo "# run the install script"
-  cd /home/vagrant/dependencies/gnat_community_install_script
-  
-  # Running this as vagrant removes a spurious error message
-  sudo -EHu vagrant sh install_package.sh /home/vagrant/software/gnat_community/gnat-bin /opt/gnat
-
-  # set the paths - note that we have to move to the vagrant user dir
-  # because provisioning runs as root
-  echo "# set the paths"
-  cd ~vagrant
-  sudo -Hu vagrant echo "PATH=/opt/gnat/bin:\\$PATH" >> ~vagrant/.profile
-  echo " "
-  echo "# end install gnat community "
-  echo "# ------------------------------------------------------ #"
-SHELL
 
 # Running install_ and setup_env
 PROVISIONING_ENV = <<-SHELL
   echo " "
   echo "# ------------------------------------------------------ #"
-  echo "# install env"
+  echo "# set profile"
   
-  sudo -Hu vagrant cp /home/vagrant/bootstrap-src-shared/refresh-bootstrap /home/vagrant
-  sudo -Hu vagrant python3 refresh-bootstrap --no-prompt
-
+  sudo -Hu vagrant echo "PATH=/home/vagrant/bootstrap/software/gnat/bin:\\$PATH" >> ~vagrant/.profile
   sudo -Hu vagrant echo "PATH=/home/vagrant/bootstrap/vpython/bin:\\$PATH" >> ~vagrant/.profile
 
-  # After the build, java will be in a nonstandard place, so set the path for it:
-  sudo -Hu vagrant echo "PATH=\\$PATH:/home/vagrant/bootstrap/sbx/x86_64-linux/java/src/bin" >> ~vagrant/.profile
-
-  echo " "
-  echo "# end install env"
+  echo "# end set profile"
   echo "# ------------------------------------------------------ #"
 SHELL
 
 MOTD_MESSAGE = <<-SHELL
 
 -------------------------------------------------------------------------------
-Ubuntu 20.04 OpenUxAS Development Vagrant Box
+Ubuntu 20.04 OpenUxAS Demonstration Vagrant Box
 -------------------------------------------------------------------------------
 
 This machine has been preconfigured with all dependencies required to build and
 run OpenUxAS. To get started, run the following command:
 
-  cd ~/bootstrap && ./anod-build uxas
+  cd ~/bootstrap && ./anod-build uxas && ./anod-build amase
 
-That will build the C++ version of OpenUxAS. Additional instructions can be 
-found in the README in ~/bootstrap/README.md (or more easily read on
-github at https://github.com/AdaCore/OpenUxAS-bootstrap).
+That will build the C++ version of OpenUxAS and OpenAMASE. Then, you can run
+the waterways example like this:
+
+  ./run-example 02_Example_WaterwaySearch
+
+Additional instructions can be found in the README in ~/bootstrap/README.md (or
+more easily read on github at https://github.com/AdaCore/OpenUxAS-bootstrap).
 
 SHELL
 
@@ -236,9 +169,7 @@ INIT_PROVISIONING = build_logged_commands(PROVISIONING_DATE +
                                           PROVISIONING_APT)
 
 # All machines need this provisioning
-COMMON_PROVISIONING = build_logged_commands(PROVISIONING_REPOS + 
-                                            PROVISIONING_GNAT_DOWNLOAD +
-                                            PROVISIONING_DEPENDENCIES +
+COMMON_PROVISIONING = build_logged_commands(PROVISIONING_BOOTSTRAP +
                                             PROVISIONING_ENV) + "\n" +
                                             PROVISIONING_MOTD
 
@@ -294,18 +225,10 @@ Vagrant.configure("2") do |config|
     uxas.vm.provision "shell", inline: COMMON_PROVISIONING
   end
 
-  # This defines the graphical VM. Does attempt to use plugins, because they
-  # are needed/useful.
+  # This defines the graphical VM.
   config.vm.define "uxas-gui" do |uxas_gui|
     # Specific configuration for Virtual Box
     uxas_gui.vm.provider "virtualbox" do |vb_gui|
-      if Vagrant.has_plugin?("vagrant-vbguest")
-        uxas_gui.vbguest.auto_update = true
-      else
-        puts "** WARNING **: You really should install vagrant-vbguest:"
-        puts "  `vagrant plugin install vagrant-vbguest`"
-      end
-
       # Controls whether or not the VirtualBox GUI is displayed when booting 
       # the machine
       vb_gui.gui = true
@@ -316,7 +239,6 @@ Vagrant.configure("2") do |config|
       # Give the VM a reasonable amount of VRAM.
       vb_gui.customize ["modifyvm", :id, "--vram", "128"]
       vb_gui.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
-
     end
 
     uxas_gui.vm.provision "shell", inline: COMMON_PROVISIONING
