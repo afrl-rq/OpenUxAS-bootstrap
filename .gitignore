@@ -5,3 +5,4 @@ vpython
 *.log
 /provisioning
 .mypy_cache
+*.pyc

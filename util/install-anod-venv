@@ -1,24 +1,33 @@
 #! /usr/bin/env python
 
-from __future__ import annotations
+"""
+This script automates the installation of the anod virtual environment, which
+is required to build OpenUxAS using anod. You should generally run this script
+from the root of bootstrap, like this:
 
-from e3.main import Main
-from e3.os.process import Run
-import e3.log
+    python3 util/install-anod-venv
+
+To get more information and to control the script's behavior, run:
+
+    python3 util/install-anod-venv --help
+"""
+
+from __future__ import annotations
 
 import logging
 import os
 import subprocess
 import sys
+import shutil
 
 from support.arguments import (add_logging_group,
                                add_interactive_group,
-                               add_update_group,
-                               add_package_group,
+                               add_apt_group,
+                               add_force_argument,
                                add_dry_run_argument,
                                add_print_env_argument)
 from support.commands import Command, run_command_and_exit_on_fail
-from support.log import configure_logging, fix_e3_loglevel
+from support.log import configure_logging, log_wrap
 
 from typing import TYPE_CHECKING
 
@@ -94,42 +103,73 @@ ENV_COMMANDS = f"""\
 PATH={os.path.join(VENV_DIR, 'bin')}:$PATH\
 """
 
+DESCRIPTION = """\
+This script automates the installation of the anod virtual environment, which
+is required to build OpenUxAS using anod. You should generally run this script
+from the root of bootstrap, like this:
+
+    `python3 util/install-anod-venv`
+"""
+
 if __name__ == '__main__':
-    m = Main()
+    from argparse import ArgumentParser
 
-    add_print_env_argument(m.argument_parser)
-    add_dry_run_argument(m.argument_parser)
+    argument_parser = ArgumentParser(
+        description=DESCRIPTION,
+    )
+    add_print_env_argument(argument_parser)
+    add_dry_run_argument(argument_parser)
+    add_force_argument(argument_parser)
 
-    add_interactive_group(m.argument_parser)
-    add_update_group(m.argument_parser)
-    add_package_group(m.argument_parser)
+    add_interactive_group(argument_parser)
 
-    m.parse_args(known_args_only=True)
+    add_apt_group(argument_parser)
 
-    fix_e3_loglevel(m.args)
+    add_logging_group(argument_parser)
 
-    if m.args.print_env:
+    (args, _) = argument_parser.parse_known_args()
+
+    configure_logging(args)
+
+    if args.print_env:
         print(ENV_COMMANDS)
         exit(0)
 
+    skip_install_venv = False
+
     if os.path.exists(VENV_DIR):
-        logging.critical("Virtual environment already exists in 'vpython'; "
-                         "delete it and try again.")
-        exit(1)
+        if args.force:
+            if args.dry_run:
+                print(f"rm -rf {VENV_DIR}")
+            else:
+                shutil.rmtree(VENV_DIR)
+        else:
+            logging.warning(log_wrap(
+                """\
+                The anod virtual environment already exists; skipping this
+                step. Remove it manually or use `--force` if you wish to
+                reinstall the virtual environment.\
+                """
+            ))
+            skip_install_venv = True
 
-    if (m.args.update_apt and
-        (not m.args.interactive or
-         input('Update apt? [Y/n] ') != 'n')):
-        run_command_and_exit_on_fail(APT_UPDATE, m.args.dry_run)
+    if skip_install_venv:
+        exit(0)
 
-    if (m.args.install_packages and
-        (not m.args.interactive or
-         input('Install packages? [Y/n] ') != 'n')):
-        run_command_and_exit_on_fail(APT_INSTALL, m.args.dry_run)
+    if (args.update_apt and
+        (not args.interactive or
+         input('Update apt before installing packages? [Y/n] ') != 'n')):
+        run_command_and_exit_on_fail(APT_UPDATE, args.dry_run)
+
+    if (args.install_packages and
+        (not args.interactive or
+         input('Install packages needed for anod virtual environment? '
+               '[Y/n] ') != 'n')):
+        run_command_and_exit_on_fail(APT_INSTALL, args.dry_run)
 
     if sys.platform == "linux":
         assert os.path.isfile("/usr/include/uuid/uuid.h"), "Missing uuid.h"
 
-    run_command_and_exit_on_fail(VENV_INSTALL, m.args.dry_run)
-    run_command_and_exit_on_fail(WHEEL_INSTALL, m.args.dry_run)
-    run_command_and_exit_on_fail(E3_INSTALL, m.args.dry_run)
+    run_command_and_exit_on_fail(VENV_INSTALL, args.dry_run)
+    run_command_and_exit_on_fail(WHEEL_INSTALL, args.dry_run)
+    run_command_and_exit_on_fail(E3_INSTALL, args.dry_run)

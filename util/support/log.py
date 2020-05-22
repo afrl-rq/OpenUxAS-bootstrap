@@ -1,6 +1,12 @@
+"""
+Logging configuration for install scripts. Also contains text-wrapping
+functions.
+"""
+
 from __future__ import annotations
 
 import logging
+import textwrap
 
 from typing import TYPE_CHECKING
 
@@ -12,6 +18,11 @@ FILE_FMT = "%(asctime)s: %(name)-24s: %(levelname)-8s %(message)s"
 
 
 def configure_logging(args: Namespace) -> None:
+    """
+    Configure the log based on parsed command-line arguments. To be used with
+    `support.arguments.add_logging_group`.
+    """
+
     if args.verbose == 1:
         level = logging.INFO
     elif args.verbose == 2:
@@ -33,12 +44,15 @@ def configure_logging(args: Namespace) -> None:
         logging.getLogger("").addHandler(fileHandler)
 
 
-def fix_e3_loglevel(args: Namespace) -> None:
-    if args.verbose == 1:
-        level = logging.INFO
-    elif args.verbose == 2:
-        level = logging.DEBUG
-    else:
-        level = logging.ERROR
+def wrap(s: str) -> str:
+    """Dedent and wrap a string to 79 characters."""
 
-    logging.getLogger("").handlers[0].setLevel(level)
+    return textwrap.fill(textwrap.dedent(s), width=79)
+
+
+def log_wrap(s: str) -> str:
+    """
+    Dedent and wrap a string to 70 characters with a 9-space hanging indent.
+    """
+
+    return textwrap.fill(textwrap.dedent(s), width=70, subsequent_indent=' '*9)

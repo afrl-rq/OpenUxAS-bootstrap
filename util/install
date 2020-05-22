@@ -1,18 +1,31 @@
 #! /usr/bin/env python
 
+"""
+This script provides a front-end for installing components needed to be able to
+run the anod build of OpenUxAS.
+
+Run this script from the root of bootstrap, like this:
+
+    python3 util/install
+
+To get more information and to control the script's behavior, run:
+
+    python3 util/install --help
+"""
+
 from __future__ import annotations
 
 import logging
 import os
 import subprocess
 import sys
-import textwrap
 
 from support.arguments import (add_logging_group,
                                add_interactive_group,
+                               add_force_argument,
                                add_dry_run_argument)
 from support.commands import Command, run_command_and_exit_on_fail
-from support.log import configure_logging
+from support.log import configure_logging, wrap
 
 
 from typing import TYPE_CHECKING
@@ -24,12 +37,6 @@ if TYPE_CHECKING:
     )
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-E3_INSTALL = Command(
-    cmd=[sys.executable,
-         os.path.join(ROOT_DIR, 'install-e3')],
-    description='Install e3-core',
-)
 
 GNAT_INSTALL = Command(
     cmd=[sys.executable,
@@ -52,42 +59,37 @@ VENV_ENV = Command(
 )
 
 
-def wrap(s: str) -> str:
-    return textwrap.fill(textwrap.dedent(s), width=79)
-
-
 def pass_args(command: Command) -> Command:
+    """Add all arguments provided to this script to a command."""
+
     command.cmd += sys.argv[1:]
     return command
 
 
+DESCRIPTION = """\
+This script automates the installation of components needed to be able to run
+the anod build of OpenUxAS. You should generally run this script from the root
+of bootstra, like this:
+
+    `python3 util/install`
+"""
+
 if __name__ == '__main__':
     from argparse import ArgumentParser
 
-    argument_parser = ArgumentParser()
+    argument_parser = ArgumentParser(
+        description=DESCRIPTION,
+    )
 
     add_dry_run_argument(argument_parser)
+    add_force_argument(argument_parser)
 
-    add_logging_group(argument_parser)
     add_interactive_group(argument_parser)
 
-    e3_group = argument_parser.add_mutually_exclusive_group()
-    e3_group.add_argument(
-        '--e3',
-        dest='install_e3',
-        action='store_true',
-        default=True,
-        help='install e3-core; run `util/install-e3 --help` for additional e3 '
-             'options',
+    meta_gnat_group = argument_parser.add_argument_group(
+        "GNAT Community installation"
     )
-    e3_group.add_argument(
-        '--no-e3',
-        dest='install_e3',
-        action='store_false',
-        help='do not install e3-core',
-    )
-
-    gnat_group = argument_parser.add_mutually_exclusive_group()
+    gnat_group = meta_gnat_group.add_mutually_exclusive_group()
     gnat_group.add_argument(
         '--gnat',
         dest='install_gnat',
@@ -103,7 +105,10 @@ if __name__ == '__main__':
         help='do not install GNAT community',
     )
 
-    anod_group = argument_parser.add_mutually_exclusive_group()
+    meta_anod_group = argument_parser.add_argument_group(
+        "anod virtual environment installation"
+    )
+    anod_group = meta_anod_group.add_mutually_exclusive_group()
     anod_group.add_argument(
         '--anod',
         dest='install_anod_venv',
@@ -119,18 +124,15 @@ if __name__ == '__main__':
         help='do not install anod virtual environment',
     )
 
+    add_logging_group(argument_parser)
+
     (args, _) = argument_parser.parse_known_args()
 
     configure_logging(args)
+
     set_no_update = False
     installed_gnat = False
     installed_venv = False
-
-    if (args.install_e3 and
-        (not args.interactive or
-         input('Install e3? [Y/n] ') != 'n')):
-        run_command_and_exit_on_fail(pass_args(E3_INSTALL))
-        set_no_update = True
 
     if (args.install_gnat and
         (not args.interactive or

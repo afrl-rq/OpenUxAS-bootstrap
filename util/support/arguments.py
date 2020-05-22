@@ -1,10 +1,25 @@
+"""Common command-line argument configuration for install scripts."""
+
 from __future__ import annotations
 
 from argparse import ArgumentParser
 import logging
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from argparse import _ArgumentGroup
+    from typing import (
+        Union,
+    )
+
 
 def add_logging_group(argument_parser: ArgumentParser) -> None:
+    """
+    Add a group and arguments to control the log. Use with
+    `support.log.configure_logging`.
+    """
+
     log_group = argument_parser.add_argument_group(title='logging arguments')
     log_group.add_argument(
         '-v',
@@ -21,7 +36,7 @@ def add_logging_group(argument_parser: ArgumentParser) -> None:
     )
     log_group.add_argument(
         '--loglevel',
-        default=logging.ERROR,
+        default=logging.WARNING,
         help='set the console log level',
         choices={
             'DEBUG': logging.DEBUG,
@@ -34,7 +49,11 @@ def add_logging_group(argument_parser: ArgumentParser) -> None:
 
 
 def add_interactive_group(argument_parser: ArgumentParser) -> None:
-    interactive_group = argument_parser.add_mutually_exclusive_group()
+    """Add a group and arguments to control interactivity."""
+
+    meta_interactive_group = argument_parser.add_argument_group(
+        "interactivity options")
+    interactive_group = meta_interactive_group.add_mutually_exclusive_group()
     interactive_group.add_argument(
         '--interactive',
         action='store_true',
@@ -49,7 +68,17 @@ def add_interactive_group(argument_parser: ArgumentParser) -> None:
     )
 
 
-def add_update_group(argument_parser: ArgumentParser) -> None:
+def add_apt_group(argument_parser: ArgumentParser) -> None:
+    """Add a group and arguments to control apt updating and installing."""
+
+    apt_group = argument_parser.add_argument_group("apt control")
+    add_update_group(apt_group)
+    add_package_group(apt_group)
+
+
+def add_update_group(
+    argument_parser: Union[ArgumentParser, _ArgumentGroup]
+) -> None:
     update_group = argument_parser.add_mutually_exclusive_group()
     update_group.add_argument(
         '--update',
@@ -66,7 +95,9 @@ def add_update_group(argument_parser: ArgumentParser) -> None:
     )
 
 
-def add_package_group(argument_parser: ArgumentParser) -> None:
+def add_package_group(
+    argument_parser: Union[ArgumentParser, _ArgumentGroup]
+) -> None:
     package_group = argument_parser.add_mutually_exclusive_group()
     package_group.add_argument(
         '--packages',
@@ -84,6 +115,8 @@ def add_package_group(argument_parser: ArgumentParser) -> None:
 
 
 def add_dry_run_argument(argument_parser: ArgumentParser) -> None:
+    """Add an argument to set dry-run mode."""
+
     argument_parser.add_argument(
         '-n',
         '--dry-run',
@@ -94,8 +127,22 @@ def add_dry_run_argument(argument_parser: ArgumentParser) -> None:
 
 
 def add_print_env_argument(argument_parser: ArgumentParser) -> None:
+    """Add an argument to print the environment set up by the script."""
+
     argument_parser.add_argument(
         '--print-env',
         action='store_true',
         default=False,
         help='print out the environment for the tools installed and quit')
+
+
+def add_force_argument(argument_parser: ArgumentParser) -> None:
+    """Add an argument to set force."""
+
+    argument_parser.add_argument(
+        '-f',
+        '--force',
+        action='store_true',
+        default=False,
+        help='force redownload and reinstallation of existing components'
+    )

@@ -1,3 +1,5 @@
+"""Common support for defining and running commands."""
+
 from __future__ import annotations
 
 import logging
@@ -16,16 +18,21 @@ if TYPE_CHECKING:
 
 
 class Command:
+    """
+    A representation of a command, its optional description, and its optional
+    working directory.
+    """
+
     def __init__(
         self,
         cmd: Union[str, List[str]],
         description: Optional[str] = None,
         cwd: Optional[str] = None
     ) -> None:
-        self.cmd: List[str] = list()
+        self.cmd: List[str] = []
 
         # Spurious type errors on both branches:
-        if type(cmd) is str:
+        if isinstance(cmd, str):
             self.cmd = [cmd]
         else:
             self.cmd = cmd
@@ -35,6 +42,8 @@ class Command:
 
 
 def format_command(command: Command) -> str:
+    """Format a command to display in the log."""
+
     if command.cwd is not None:
         return "(cd {} && {})".format(os.path.relpath(command.cwd,
                                                       os.getcwd()),
@@ -45,6 +54,8 @@ def format_command(command: Command) -> str:
 
 def log_command(command: Command,
                 dry_run: Optional[bool] = False) -> int:
+    """Log and run a command."""
+
     if command.description is not None:
         logging.info(command.description)
 
@@ -60,6 +71,11 @@ def log_command(command: Command,
 
 def run_command_and_exit_on_fail(command: Command,
                                  dry_run: Optional[bool] = False) -> None:
+    """
+    Log and run a command, printing a message and exiting if the result is
+    nonzero.
+    """
+
     result = log_command(command, dry_run)
     if result != 0:
         if command.description is not None:
