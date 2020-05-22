@@ -23,7 +23,7 @@ LOG_REPORT_FUNCTION = <<-SHELL
     RET=$?
 
     if [ $RET -ne 0 ]; then
-        echo "[Error]   $@"
+        echo "[Error]   $@" >&2
     else
         case $1 in
             echo|cd) ;;
@@ -71,10 +71,10 @@ SHELL
 PROVISIONING_BOOTSTRAP = <<-SHELL
   echo "# ------------------------------------------------------ #"
   cd /home/vagrant
-  su -Hu vagrant git clone https://github.com/manthonyaiello/OpenUxAS-bootstrap bootstrap
+  sudo -Hu vagrant git clone https://github.com/manthonyaiello/OpenUxAS-bootstrap bootstrap
 
   cd /home/vagrant/bootstrap
-  su -Hu vagrant python3 util/install --automatic -vv --no-update
+  sudo -Hu vagrant python3 util/install --automatic -vv --no-update
   echo "# ------------------------------------------------------ #"
 SHELL
 
@@ -203,17 +203,6 @@ Vagrant.configure("2") do |config|
 
     # From Rob's Vagrantfile
     vb.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/v-root", "1"]
-  end
-
-  # Always sync this repo.
-  config.vm.synced_folder ".", "/home/vagrant/bootstrap-src-shared"
-
-  # As a compromise, see if gnat community has already been downloaded. If so,
-  # we map that into the VM, where we test for the installer before downloading
-  # it again.
-  COMMUNITY_FOLDER = "../software/gnat_community"
-  if File.exist?(COMMUNITY_FOLDER) then
-    config.vm.synced_folder COMMUNITY_FOLDER, "/home/vagrant/software/gnat_community"
   end
 
   # Initial provisioning
