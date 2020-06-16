@@ -8,16 +8,16 @@ class Ant(spec('common')):
 
     @property
     def build_source_list(self):
-        return [Anod.Source(name='apache-ant-1.10.7-bin.tar.gz',
+        return [Anod.Source(name='apache-ant-1.10.8-bin.tar.gz',
                             publish=True)]
 
     @property
     def source_pkg_build(self):
         return [
             self.HTTPSSourceBuilder(
-                name='apache-ant-1.10.7-bin.tar.gz',
-                url='http://ftp.cixug.es/apache//ant/binaries/'
-                'apache-ant-1.10.7-bin.tar.gz')]
+                name='apache-ant-1.10.8-bin.tar.gz',
+                url='https://archive.apache.org/dist/ant/binaries/'
+                    'apache-ant-1.10.8-bin.tar.gz')]
 
     def setenv(self, prefix=None):
         if prefix is None:
