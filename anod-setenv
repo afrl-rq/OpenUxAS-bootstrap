@@ -1,37 +1,21 @@
 #!/usr/bin/env python
-import logging
-import os
-import sys
+
+from anod.util import (check_common_tools, create_anod_context,
+                       create_anod_sandbox)
 
 from e3.main import Main
-from e3.anod.loader import AnodSpecRepository
 from e3.anod.context import AnodContext
 from e3.anod.sandbox import SandBox
 from e3.env import BaseEnv
 from e3.os.process import Run
 
+import logging
+import os
+import sys
+
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 SPEC_DIR = os.path.join(ROOT_DIR, 'specs')
 SBX_DIR = os.path.join(ROOT_DIR, 'sbx')
-
-
-def check_tool(tool):
-    """Check tool version and return its version.
-
-    The function will force exit if the tool is not found.
-
-    :param tool: tool name
-    :type tool: str
-    :return: the tool version
-    :rtype: str
-    """
-    try:
-        p = Run([tool, '--version'])
-        version = p.out.splitlines()[0]
-        return version
-    except Exception:
-        logging.critical("cannot find %s", tool)
-        sys.exit(1)
 
 
 # Help users who can't remember to use eval.
@@ -47,6 +31,7 @@ BANNER = '''
 # Otherwise, no changes will be made to your environment.
 # ----------------------------------------------------------------------------
 '''
+
 
 if __name__ == '__main__':
     m = Main()
@@ -68,19 +53,10 @@ if __name__ == '__main__':
     # Disable logging messages except errors
     logging.getLogger('').setLevel(logging.ERROR)
 
-    asr = AnodSpecRepository(SPEC_DIR)
-    ac = AnodContext(asr)
-    sbx = SandBox()
-    sbx.root_dir = m.args.sandbox_dir
-    sbx.specs_dir = SPEC_DIR
+    check_common_tools()
 
-    # The following variables are used to force recompilation
-    # in case of some tool change.
-    gcc_version = check_tool('gcc')
-    os.environ['OPENUXAS_COMPILER_VERSION'] = gcc_version
-    cmake_version = check_tool('cmake')
-    os.environ['OPENUXAS_CMAKE_VERSION'] = cmake_version
-    check_tool('pkg-config')
+    ac = create_anod_context(SPEC_DIR)
+    sbx = create_anod_sandbox(m.args.sandbox_dir, SPEC_DIR)
 
     anod_instance = ac.add_anod_action(
         name=m.args.spec_name,
@@ -101,6 +77,9 @@ if __name__ == '__main__':
 
     for var, value in os.environ.items():
         if var not in saved_env or saved_env[var] != os.environ[var]:
-            print('export %s="%s"' % (var, value))
+            print('export %s="%s";' % (var, value))
+
+            if m.args.verbose >= 1:
+                print('printf "I set %s=\\\"%s\\\"\\n\\n";' % (var, value))
 
     print(BANNER)
