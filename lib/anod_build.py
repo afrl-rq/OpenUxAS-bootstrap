@@ -1,29 +1,31 @@
 #!/usr/bin/env python
 
-from anod.build import UxasBuilder
-from anod.util import (check_common_tools, create_anod_context,
-                       create_anod_sandbox)
+from __future__ import annotations
+
+from lib.anod.build import UxasBuilder
+from lib.anod.util import (check_common_tools, create_anod_context,
+                           create_anod_sandbox)
+from lib.anod.paths import (REPO_DIR, SPEC_DIR, SBX_DIR)
 
 from e3.anod.context import AnodContext
 from e3.anod.sandbox import SandBox
 from e3.env import BaseEnv
 from e3.main import Main
 
-import logging
 import os
 import sys
 
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-SPEC_DIR = os.path.join(ROOT_DIR, 'specs')
-SBX_DIR = os.path.join(ROOT_DIR, 'sbx')
+from typing import TYPE_CHECKING
+
 
 # Uxas repo root directory
-OPENUXAS_ROOT_DIR = os.path.dirname(ROOT_DIR)
+OPENUXAS_ROOT_DIR = os.path.dirname(REPO_DIR)
 os.environ['OPENUXAS_ROOT_DIR'] = OPENUXAS_ROOT_DIR
 
 
-if __name__ == '__main__':
-    m = Main()
+def do_build(m: Main, set_prog=True) -> int:
+    if set_prog:
+        m.argument_parser.prog = m.argument_parser.prog + ' build'
     m.argument_parser.add_argument(
         'spec_name', help='spec to build. This is '
         'the basename of an .anod file (without the extension)')
@@ -58,3 +60,8 @@ if __name__ == '__main__':
 
     # TODO: something with walker.job_status['root'], assuming we can get a
     # useful value there. Right now, it's always 'unknown'
+    return 0
+
+
+if __name__ == '__main__':
+    exit(do_build(Main(), set_prog=False))

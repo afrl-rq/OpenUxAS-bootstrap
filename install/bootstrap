@@ -82,4 +82,5 @@ fi
 
 checkout "${GITHUB}/${BOOTSTRAP_FORK}" "${BOOTSTRAP_ROOT}"
 
-(cd "${BOOTSTRAP_ROOT}" && python3 util/install --automatic -v --log-file provisioning.log)
+(cd "${BOOTSTRAP_ROOT}" && \
+ python3 install/install --automatic -v --log-file provisioning.log)

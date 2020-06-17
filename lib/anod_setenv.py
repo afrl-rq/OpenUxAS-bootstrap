@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
-from anod.util import (check_common_tools, create_anod_context,
-                       create_anod_sandbox)
+from __future__ import annotations
+
+from lib.anod.util import (check_common_tools, create_anod_context,
+                           create_anod_sandbox)
+from lib.anod.paths import (SPEC_DIR, SBX_DIR)
 
 from e3.main import Main
 from e3.anod.context import AnodContext
@@ -13,14 +16,11 @@ import logging
 import os
 import sys
 
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-SPEC_DIR = os.path.join(ROOT_DIR, 'specs')
-SBX_DIR = os.path.join(ROOT_DIR, 'sbx')
+from typing import TYPE_CHECKING
 
 
 # Help users who can't remember to use eval.
 BANNER = '''
-
 # ----------------------------------------------------------------------------
 # If you are seeing this, then you forgot eval.
 #
@@ -33,8 +33,9 @@ BANNER = '''
 '''
 
 
-if __name__ == '__main__':
-    m = Main()
+def do_setenv(m: Main, set_prog=True) -> int:
+    if set_prog:
+        m.argument_parser.prog = m.argument_parser.prog + ' setenv'
     m.argument_parser.add_argument(
         'spec_name', help='spec to build. This is '
         'the basename of an .anod file (without the extension)')
@@ -82,4 +83,11 @@ if __name__ == '__main__':
             if m.args.verbose >= 1:
                 print('printf "I set %s=\\\"%s\\\"\\n\\n";' % (var, value))
 
+            print(' ')
+
     print(BANNER)
+    return 0
+
+
+if __name__ == '__main__':
+    exit(do_setenv(Main(), set_prog=False))
