@@ -89,10 +89,6 @@ def check_out(name, remote, refspec, clone_dir):
 
 def configure_argparse_for_component(ap, key, name, default_dir,
                                      default_remote, default_refspec):
-    ap.add_argument('--%s' % key, dest='configure_%s' % key, default=False,
-                    action='store_true',
-                    help='configure %s for development' % name)
-
     ap.add_argument('--%s-clone-dir' % key, default=default_dir,
                     help=('absolute path where the %s repository has been ' +
                           'or should be cloned') % name)
@@ -119,6 +115,13 @@ if __name__ == '__main__':
     with open(REPOSITORIES_YAML_PATH, 'r') as yaml_file:
         loaded_yaml = yaml.safe_load(yaml_file.read())
 
+    ap.add_argument(
+        'component',
+        choices=['uxas', 'lmcp', 'amase'],
+        nargs='*',
+        help='the component to configure for development'
+    )
+
     # Some defensiveness could be added here by wrapping in try-except to
     # account for possible missing keys in the repositories.yaml
     configure_argparse_for_component(ap, 'uxas', 'OpenUxAS', DEFAULT_UXAS_DIR,
@@ -139,21 +142,21 @@ if __name__ == '__main__':
     didSomething = False
 
     try:
-        if args.configure_uxas:
+        if 'uxas' in args.component:
             update_yaml(REPOSITORIES_YAML_PATH, UXAS_YAML_KEY,
                         args.uxas_clone_dir)
             check_out('OpenUxAS', args.uxas_remote, args.uxas_refspec,
                       args.uxas_clone_dir)
             didSomething = True
 
-        if args.configure_lmcp:
+        if 'lmcp' in args.component:
             update_yaml(REPOSITORIES_YAML_PATH, LMCP_YAML_KEY,
                         args.lmcp_clone_dir)
             check_out('LmcpGen', args.lmcp_remote, args.lmcp_refspec,
                       args.lmcp_clone_dir)
             didSomething = True
 
-        if args.configure_amase:
+        if 'amase' in args.component:
             update_yaml(REPOSITORIES_YAML_PATH, AMASE_YAML_KEY,
                         args.amase_clone_dir)
             check_out('OpenAMASE', args.amase_remote, args.amase_refspec,
