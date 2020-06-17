@@ -9,6 +9,7 @@ from lib.anod.paths import (REPO_DIR, SPEC_DIR, SBX_DIR)
 
 from e3.anod.context import AnodContext
 from e3.anod.sandbox import SandBox
+from e3.anod.status import ReturnValue
 from e3.env import BaseEnv
 from e3.main import Main
 
@@ -21,6 +22,14 @@ from typing import TYPE_CHECKING
 # Uxas repo root directory
 OPENUXAS_ROOT_DIR = os.path.dirname(REPO_DIR)
 os.environ['OPENUXAS_ROOT_DIR'] = OPENUXAS_ROOT_DIR
+
+# Define what we mean by a successful build.
+BUILD_SUCCESS = [
+    ReturnValue.success,
+    ReturnValue.force_skip,
+    ReturnValue.skip,
+    ReturnValue.unchanged
+]
 
 
 def do_build(m: Main, set_prog=True) -> int:
@@ -60,7 +69,18 @@ def do_build(m: Main, set_prog=True) -> int:
 
     # TODO: something with walker.job_status['root'], assuming we can get a
     # useful value there. Right now, it's always 'unknown'
-    return 0
+    #
+    # In the meantime, python > 3.6 guarantees the order of keys in a dict.
+    # The job_status dict has as its penultimate entry the thing we asked to
+    # build or the last thing that failed (the last non-root node). It's ugly,
+    # but _should_ be safe to use this, until we have resolution for root
+    # always reporting unknown.
+    result = list(walker.job_status.values())[-2]
+
+    if result in BUILD_SUCCESS:
+        return 0
+    else:
+        return result
 
 
 if __name__ == '__main__':
