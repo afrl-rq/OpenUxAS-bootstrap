@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from e3.anod.loader import AnodSpecRepository
 from e3.anod.context import AnodContext
 from e3.anod.action import (Build, DownloadSource, GetSource,
@@ -20,14 +19,6 @@ import json
 import logging
 import os
 import sys
-
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-SPEC_DIR = os.path.join(ROOT_DIR, 'specs')
-SBX_DIR = os.path.join(ROOT_DIR, 'sbx')
-
-# Uxas repo root directory
-OPENUXAS_ROOT_DIR = os.path.dirname(ROOT_DIR)
-os.environ['OPENUXAS_ROOT_DIR'] = OPENUXAS_ROOT_DIR
 
 
 def add_anod_files_to_fingerprint(anod_instance, fingerprint):
@@ -137,7 +128,9 @@ class UxasDownloadSource(UxasJob):
                 else:
                     self.run_status = ReturnValue.success
             else:
-                cp(os.path.join(SPEC_DIR, 'patches', builder.url),
+                cp(os.path.join(self.sandbox.specs_dir,
+                                'patches',
+                                builder.url),
                    cache_dir)
                 self.run_status = ReturnValue.success
 
@@ -287,66 +280,3 @@ class UxasBuilder(Walk):
     def create_job(self, uid, data, predecessors, notify_end):
         return self.JOB_CLASSES.get(data.__class__, UxasJob)(
             uid, data, notify_end, sandbox=self.sandbox)
-
-
-def check_tool(tool):
-    """Check tool version and return its version.
-
-    The function will force exit if the tool is not found.
-
-    :param tool: tool name
-    :type tool: str
-    :return: the tool version
-    :rtype: str
-    """
-    try:
-        p = Run([tool, '--version'])
-        version = p.out.splitlines()[0]
-        logging.info("%s version: %s", tool, version)
-        return version
-    except Exception:
-        logging.critical("cannot find %s", tool)
-        sys.exit(1)
-
-
-if __name__ == '__main__':
-    m = Main()
-    m.argument_parser.add_argument(
-        'spec_name', help='spec to build. This is '
-        'the basename of an .anod file (without the extension)')
-    m.argument_parser.add_argument('--qualifier', help='optional qualifier')
-    m.argument_parser.add_argument(
-        '--sandbox-dir',
-        help='directory in which build artefacts are stored',
-        default=SBX_DIR)
-    m.argument_parser.add_argument(
-        '--force',
-        help='force rebuild of everything',
-        action="store_true",
-        default=False)
-    m.parse_args()
-
-    # The following variables are used to force recompilation
-    # in case of some tool change.
-    gcc_version = check_tool('gcc')
-    os.environ['OPENUXAS_COMPILER_VERSION'] = gcc_version
-    cmake_version = check_tool('cmake')
-    os.environ['OPENUXAS_CMAKE_VERSION'] = cmake_version
-    check_tool('pkg-config')
-
-    asr = AnodSpecRepository(SPEC_DIR)
-    ac = AnodContext(asr)
-    sbx = SandBox()
-    sbx.root_dir = m.args.sandbox_dir
-    sbx.create_dirs()
-    sbx.specs_dir = SPEC_DIR
-
-    ac.add_anod_action(name=m.args.spec_name,
-                       primitive='build',
-                       qualifier=m.args.qualifier,
-                       sandbox=sbx,
-                       upload=False,
-                       env=BaseEnv.from_env())
-    actions = ac.schedule(resolver=ac.always_create_source_resolver)
-
-    walker = UxasBuilder(actions, sandbox=sbx, force=m.args.force)

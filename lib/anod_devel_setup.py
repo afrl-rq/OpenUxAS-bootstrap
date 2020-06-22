@@ -3,22 +3,31 @@
 """
 Script to configure OpenUxAS anod environment for development work.
 """
+
+from __future__ import annotations
+
+from lib.anod.paths import (REPO_DIR, SPEC_DIR, SBX_DIR)
+
+from e3.main import Main
+
 import argparse
+import logging
 import os
 import subprocess
 import sys
 import yaml
 
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+from typing import TYPE_CHECKING
+
+
 SPEC_DIR_NAME = 'specs'
-SPEC_DIR = os.path.join(ROOT_DIR, SPEC_DIR_NAME)
 
 CONFIG_DIR_NAME = 'config'
 REPOSITORIES_FILENAME = 'repositories.yaml'
 REPOSITORIES_YAML_PATH = os.path.join(
     SPEC_DIR, CONFIG_DIR_NAME, REPOSITORIES_FILENAME)
 
-DEFAULT_REPO_DIR = os.path.join(ROOT_DIR, 'develop')
+DEFAULT_REPO_DIR = os.path.join(REPO_DIR, 'develop')
 
 DEFAULT_UXAS_DIR = os.path.join(DEFAULT_REPO_DIR, "OpenUxAS")
 UXAS_YAML_KEY = 'openuxas'
@@ -78,10 +87,9 @@ def update_yaml(yaml_filename, key, clone_dir):
 
 def check_out(name, remote, refspec, clone_dir):
     if not os.path.exists(clone_dir):
-        print("Checking out %s \n    from %s %s \n    to %s" % (name,
-                                                                remote,
-                                                                refspec,
-                                                                clone_dir))
+        logging.info(
+            "Checking out %s\n        from %s %s\n        to %s" %
+            (name, remote, refspec, clone_dir))
 
         subprocess.run(['git', 'clone', remote, clone_dir])
         subprocess.run(['git', 'checkout', refspec], cwd=clone_dir)
@@ -89,10 +97,6 @@ def check_out(name, remote, refspec, clone_dir):
 
 def configure_argparse_for_component(ap, key, name, default_dir,
                                      default_remote, default_refspec):
-    ap.add_argument('--%s' % key, dest='configure_%s' % key, default=False,
-                    action='store_true',
-                    help='configure %s for development' % name)
-
     ap.add_argument('--%s-clone-dir' % key, default=default_dir,
                     help=('absolute path where the %s repository has been ' +
                           'or should be cloned') % name)
@@ -104,67 +108,86 @@ def configure_argparse_for_component(ap, key, name, default_dir,
                     help='the %s refspec to clone' % name)
 
 
-if __name__ == '__main__':
-    ap = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=DESCRIPTION)
+def do_devel_setup(m: Main, set_prog=True) -> int:
+    if set_prog:
+        m.argument_parser.prog = m.argument_parser.prog + ' devel-setup'
 
-    print(REPOSITORIES_YAML_PATH)
+    m.argument_parser.formatter_class = argparse.RawDescriptionHelpFormatter
+    m.argument_parser.description = DESCRIPTION
+
     if not os.path.exists(REPOSITORIES_YAML_PATH):
-        print('Cannot find `repositories.yaml` under `specs/config`.\n' +
-              'Are you running in the right location?',
-              file=sys.stderr)
+        logging.error(
+            'Cannot find `repositories.yaml` under `specs/config`.\n' +
+            'Are you running in the right location?',
+            file=sys.stderr)
         exit(1)
 
     with open(REPOSITORIES_YAML_PATH, 'r') as yaml_file:
         loaded_yaml = yaml.safe_load(yaml_file.read())
 
+    m.argument_parser.add_argument(
+        'component',
+        choices=['uxas', 'lmcp', 'amase'],
+        nargs='+',
+        help='the component to configure for development'
+    )
+
     # Some defensiveness could be added here by wrapping in try-except to
     # account for possible missing keys in the repositories.yaml
-    configure_argparse_for_component(ap, 'uxas', 'OpenUxAS', DEFAULT_UXAS_DIR,
-                                     loaded_yaml[UXAS_YAML_KEY][URL_YAML_KEY],
-                                     loaded_yaml[UXAS_YAML_KEY][REV_YAML_KEY])
+    configure_argparse_for_component(
+        m.argument_parser,
+        'uxas',
+        'OpenUxAS',
+        DEFAULT_UXAS_DIR,
+        loaded_yaml[UXAS_YAML_KEY][URL_YAML_KEY],
+        loaded_yaml[UXAS_YAML_KEY][REV_YAML_KEY])
 
-    configure_argparse_for_component(ap, 'lmcp', 'LmcpGen', DEFAULT_LMCP_DIR,
-                                     loaded_yaml[LMCP_YAML_KEY][URL_YAML_KEY],
-                                     loaded_yaml[LMCP_YAML_KEY][REV_YAML_KEY])
+    configure_argparse_for_component(
+        m.argument_parser,
+        'lmcp',
+        'LmcpGen',
+        DEFAULT_LMCP_DIR,
+        loaded_yaml[LMCP_YAML_KEY][URL_YAML_KEY],
+        loaded_yaml[LMCP_YAML_KEY][REV_YAML_KEY])
 
-    configure_argparse_for_component(ap, 'amase', 'OpenAMASE',
-                                     DEFAULT_AMASE_DIR,
-                                     loaded_yaml[AMASE_YAML_KEY][URL_YAML_KEY],
-                                     loaded_yaml[AMASE_YAML_KEY][REV_YAML_KEY])
+    configure_argparse_for_component(
+        m.argument_parser,
+        'amase',
+        'OpenAMASE',
+        DEFAULT_AMASE_DIR,
+        loaded_yaml[AMASE_YAML_KEY][URL_YAML_KEY],
+        loaded_yaml[AMASE_YAML_KEY][REV_YAML_KEY])
 
-    args = ap.parse_args()
-
-    didSomething = False
+    args = m.argument_parser.parse_args()
 
     try:
-        if args.configure_uxas:
+        if 'uxas' in args.component:
             update_yaml(REPOSITORIES_YAML_PATH, UXAS_YAML_KEY,
                         args.uxas_clone_dir)
             check_out('OpenUxAS', args.uxas_remote, args.uxas_refspec,
                       args.uxas_clone_dir)
-            didSomething = True
 
-        if args.configure_lmcp:
+        if 'lmcp' in args.component:
             update_yaml(REPOSITORIES_YAML_PATH, LMCP_YAML_KEY,
                         args.lmcp_clone_dir)
             check_out('LmcpGen', args.lmcp_remote, args.lmcp_refspec,
                       args.lmcp_clone_dir)
-            didSomething = True
 
-        if args.configure_amase:
+        if 'amase' in args.component:
             update_yaml(REPOSITORIES_YAML_PATH, AMASE_YAML_KEY,
                         args.amase_clone_dir)
             check_out('OpenAMASE', args.amase_remote, args.amase_refspec,
                       args.amase_clone_dir)
-            didSomething = True
 
-        if not didSomething:
-            print("Nothing to do.")
-            ap.print_usage()
+        return 0
 
     except Exception as e:
         print(e, file=sys.stderr)
         print(" ", file=sys.stderr)
-        ap.print_usage()
+        m.argument_parser.print_usage()
+
+        return 1
+
+
+if __name__ == '__main__':
+    exit(do_devel_setup(Main(), set_prog=False))

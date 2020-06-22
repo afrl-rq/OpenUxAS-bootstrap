@@ -3,3 +3,6 @@ sbx-env
 vpython
 /.vagrant
 *.log
+/provisioning
+.mypy_cache
+*.pyc
