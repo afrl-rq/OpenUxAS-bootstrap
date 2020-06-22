@@ -75,12 +75,12 @@ def do_build(m: Main, set_prog=True) -> int:
     # build or the last thing that failed (the last non-root node). It's ugly,
     # but _should_ be safe to use this, until we have resolution for root
     # always reporting unknown.
-    result = list(walker.job_status.values())[-2]
+    result: ReturnValue = list(walker.job_status.values())[-2]
 
     if result in BUILD_SUCCESS:
         return 0
     else:
-        return result
+        return result.value
 
 
 if __name__ == '__main__':
