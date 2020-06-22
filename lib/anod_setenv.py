@@ -26,7 +26,7 @@ BANNER = '''
 #
 # You need to run anod-setenv like this:
 #
-#   eval `./anod-setenv uxas`
+#   eval `./anod setenv uxas`
 #
 # Otherwise, no changes will be made to your environment.
 # ----------------------------------------------------------------------------
