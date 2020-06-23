@@ -1,6 +1,7 @@
 """
-Logging configuration for install scripts. Also contains text-wrapping
-functions.
+Logging configuration for install scripts.
+
+This module also contains text-wrapping functions.
 """
 
 from __future__ import annotations
@@ -19,10 +20,10 @@ FILE_FMT = "%(asctime)s: %(name)-24s: %(levelname)-8s %(message)s"
 
 def configure_logging(args: Namespace) -> None:
     """
-    Configure the log based on parsed command-line arguments. To be used with
-    `support.arguments.add_logging_group`.
-    """
+    Configure the log based on parsed command-line arguments.
 
+    To be used with `support.arguments.add_logging_group`.
+    """
     if args.verbose == 1:
         level = logging.INFO
     elif args.verbose == 2:
@@ -46,13 +47,9 @@ def configure_logging(args: Namespace) -> None:
 
 def wrap(s: str) -> str:
     """Dedent and wrap a string to 79 characters."""
-
     return textwrap.fill(textwrap.dedent(s), width=79)
 
 
 def log_wrap(s: str) -> str:
-    """
-    Dedent and wrap a string to 70 characters with a 9-space hanging indent.
-    """
-
-    return textwrap.fill(textwrap.dedent(s), width=70, subsequent_indent=' '*9)
+    """Dedent and wrap a string to 70 characters with a 9-space hanging indent."""
+    return textwrap.fill(textwrap.dedent(s), width=70, subsequent_indent=" " * 9)

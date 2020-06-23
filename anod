@@ -1,24 +1,18 @@
 #!/usr/bin/env python
 
-"""
-Simple front-end to the task-specific anod scripts contained in lib.
-"""
+"""Simple front-end to the task-specific anod scripts contained in lib."""
 
 from e3.main import Main
 
 from argparse import SUPPRESS
 
-import logging
-import os
-import sys
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     m = Main()
     command_arg = m.argument_parser.add_argument(
-        'command',
-        choices=['build', 'setenv', 'devel-setup'],
-        help='the subcommand to be run.',
+        "command",
+        choices=["build", "setenv", "devel-setup"],
+        help="the subcommand to be run.",
     )
 
     m.parse_args(known_args_only=True)
@@ -27,17 +21,17 @@ if __name__ == '__main__':
     # for the subcommands
     command_arg.help = SUPPRESS
 
-    if m.args.command == 'build':
+    if m.args.command == "build":
         from lib.anod_build import do_build
 
         exit(do_build(m))
 
-    elif m.args.command == 'setenv':
+    elif m.args.command == "setenv":
         from lib.anod_setenv import do_setenv
 
         exit(do_setenv(m))
 
-    elif m.args.command == 'devel-setup':
+    elif m.args.command == "devel-setup":
         from lib.anod_devel_setup import do_devel_setup
 
         exit(do_devel_setup(m))

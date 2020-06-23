@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 
 """
+Install front-end script.
+
 This script provides a front-end for installing components needed to be able to
 run the anod build of OpenUxAS.
 
@@ -15,53 +17,39 @@ To get more information and to control the script's behavior, run:
 
 from __future__ import annotations
 
-import logging
 import os
 import subprocess
 import sys
 
-from support.arguments import (add_logging_group,
-                               add_interactive_group,
-                               add_force_argument,
-                               add_dry_run_argument)
+from support.arguments import (
+    add_logging_group,
+    add_interactive_group,
+    add_force_argument,
+    add_dry_run_argument,
+)
 from support.commands import Command, run_command_and_exit_on_fail
 from support.log import configure_logging, wrap
 
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from typing import (
-        Dict,
-        List,
-    )
-
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 GNAT_INSTALL = Command(
-    cmd=[sys.executable,
-         os.path.join(ROOT_DIR, 'install-gnat')],
-    description='Install gnat',
+    cmd=[sys.executable, os.path.join(ROOT_DIR, "install-gnat")],
+    description="Install gnat",
 )
 
-GNAT_ENV = Command(
-    cmd=GNAT_INSTALL.cmd + ['--print-env'],
-)
+GNAT_ENV = Command(cmd=GNAT_INSTALL.cmd + ["--print-env"],)
 
 VENV_INSTALL = Command(
-    cmd=[sys.executable,
-         os.path.join(ROOT_DIR, 'install-anod-venv')],
-    description='Install anod venv'
+    cmd=[sys.executable, os.path.join(ROOT_DIR, "install-anod-venv")],
+    description="Install anod venv",
 )
 
-VENV_ENV = Command(
-    cmd=VENV_INSTALL.cmd + ['--print-env'],
-)
+VENV_ENV = Command(cmd=VENV_INSTALL.cmd + ["--print-env"],)
 
 
 def pass_args(command: Command) -> Command:
     """Add all arguments provided to this script to a command."""
-
     command.cmd += sys.argv[1:]
     return command
 
@@ -74,35 +62,31 @@ of bootstra, like this:
     `python3 util/install`
 """
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from argparse import ArgumentParser
 
-    argument_parser = ArgumentParser(
-        description=DESCRIPTION,
-    )
+    argument_parser = ArgumentParser(description=DESCRIPTION,)
 
     add_dry_run_argument(argument_parser)
     add_force_argument(argument_parser)
 
     add_interactive_group(argument_parser)
 
-    meta_gnat_group = argument_parser.add_argument_group(
-        "GNAT Community installation"
-    )
+    meta_gnat_group = argument_parser.add_argument_group("GNAT Community installation")
     gnat_group = meta_gnat_group.add_mutually_exclusive_group()
     gnat_group.add_argument(
-        '--gnat',
-        dest='install_gnat',
-        action='store_true',
+        "--gnat",
+        dest="install_gnat",
+        action="store_true",
         default=True,
-        help='install GNAT community; run `util/install-gnat --help` for '
-             'additional gnat options',
+        help="install GNAT community; run `util/install-gnat --help` for "
+        "additional gnat options",
     )
     gnat_group.add_argument(
-        '--no-gnat',
-        dest='install_gnat',
-        action='store_false',
-        help='do not install GNAT community',
+        "--no-gnat",
+        dest="install_gnat",
+        action="store_false",
+        help="do not install GNAT community",
     )
 
     meta_anod_group = argument_parser.add_argument_group(
@@ -110,18 +94,18 @@ if __name__ == '__main__':
     )
     anod_group = meta_anod_group.add_mutually_exclusive_group()
     anod_group.add_argument(
-        '--anod',
-        dest='install_anod_venv',
-        action='store_true',
+        "--anod",
+        dest="install_anod_venv",
+        action="store_true",
         default=True,
-        help='install anod virtual environment; run `util/install-anod --help`'
-             ' for additional anod options',
+        help="install anod virtual environment; run `util/install-anod --help`"
+        " for additional anod options",
     )
     anod_group.add_argument(
-        '--no-anod',
-        dest='install_anod_venv',
-        action='store_false',
-        help='do not install anod virtual environment',
+        "--no-anod",
+        dest="install_anod_venv",
+        action="store_false",
+        help="do not install anod virtual environment",
     )
 
     add_logging_group(argument_parser)
@@ -134,25 +118,25 @@ if __name__ == '__main__':
     installed_gnat = False
     installed_venv = False
 
-    if (args.install_gnat and
-        (not args.interactive or
-         input('Install GNAT community? [Y/n] ') != 'n')):
+    if args.install_gnat and (
+        not args.interactive or input("Install GNAT community? [Y/n] ") != "n"
+    ):
         command = pass_args(GNAT_INSTALL)
 
         if set_no_update:
-            command.cmd.append('--no-update')
+            command.cmd.append("--no-update")
 
         run_command_and_exit_on_fail(command)
         set_no_update = True
         installed_gnat = True
 
-    if ((args.interactive and
-         input('Install anod virtual environment? [Y/n] ') != 'n') or
-            (not args.interactive and args.install_anod_venv)):
+    if (
+        args.interactive and input("Install anod virtual environment? [Y/n] ") != "n"
+    ) or (not args.interactive and args.install_anod_venv):
         command = pass_args(VENV_INSTALL)
 
         if set_no_update:
-            command.cmd.append('--no-update')
+            command.cmd.append("--no-update")
 
         run_command_and_exit_on_fail(command)
         set_no_update = True
@@ -163,23 +147,31 @@ if __name__ == '__main__':
 
         if installed_gnat:
             result = subprocess.run(GNAT_ENV.cmd, stdout=subprocess.PIPE)
-            env_commands += ' '*4 + result.stdout.decode(sys.stdout.encoding)
+            env_commands += " " * 4 + result.stdout.decode(sys.stdout.encoding)
 
         if installed_venv:
             result = subprocess.run(VENV_ENV.cmd, stdout=subprocess.PIPE)
-            env_commands += ' '*4 + result.stdout.decode(sys.stdout.encoding)
+            env_commands += " " * 4 + result.stdout.decode(sys.stdout.encoding)
 
         print(" ")
-        print(wrap("""\
+        print(
+            wrap(
+                """\
                 Before attempting to build OpenUxAS, you need to update your
                 PATH. You should add at least the following to your profile:
-                """))
+                """
+            )
+        )
         print(" ")
         print(env_commands)
-        print(wrap("""\
+        print(
+            wrap(
+                """\
                 To make working with anod's output more comfortable, you should
                 consider also adding the following to your profile:
-                """))
+                """
+            )
+        )
         print(" ")
         print("    eval `python3 ~/bootstrap/anod-setenv uxas`")
         print("    eval `python3 ~/bootstrap/anod-setenv amase`")

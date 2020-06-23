@@ -2,25 +2,17 @@
 
 from __future__ import annotations
 
-from lib.anod.util import (check_common_tools, create_anod_context,
-                           create_anod_sandbox)
-from lib.anod.paths import (SPEC_DIR, SBX_DIR)
+from lib.anod.util import check_common_tools, create_anod_context, create_anod_sandbox
+from lib.anod.paths import SPEC_DIR, SBX_DIR
 
 from e3.main import Main
-from e3.anod.context import AnodContext
-from e3.anod.sandbox import SandBox
 from e3.env import BaseEnv
-from e3.os.process import Run
 
 import logging
 import os
-import sys
-
-from typing import TYPE_CHECKING
-
 
 # Help users who can't remember to use eval.
-BANNER = '''
+BANNER = """
 # ----------------------------------------------------------------------------
 # If you are seeing this, then you forgot eval.
 #
@@ -30,29 +22,30 @@ BANNER = '''
 #
 # Otherwise, no changes will be made to your environment.
 # ----------------------------------------------------------------------------
-'''
+"""
 
 
-def do_setenv(m: Main, set_prog=True) -> int:
+def do_setenv(m: Main, set_prog: bool = True) -> int:
     if set_prog:
-        m.argument_parser.prog = m.argument_parser.prog + ' setenv'
+        m.argument_parser.prog = m.argument_parser.prog + " setenv"
     m.argument_parser.add_argument(
-        'spec_name', help='spec to build. This is '
-        'the basename of an .anod file (without the extension)')
-    m.argument_parser.add_argument('--qualifier', help='optional qualifier')
+        "spec_name",
+        help="spec to build. This is "
+        "the basename of an .anod file (without the extension)",
+    )
+    m.argument_parser.add_argument("--qualifier", help="optional qualifier")
     m.argument_parser.add_argument(
-        '--sandbox-dir',
-        help='directory in which build artefacts are stored',
-        default=SBX_DIR)
+        "--sandbox-dir",
+        help="directory in which build artefacts are stored",
+        default=SBX_DIR,
+    )
     m.argument_parser.add_argument(
-        '--build-env',
-        help='set build environment',
-        action="store_true",
-        default=False)
+        "--build-env", help="set build environment", action="store_true", default=False
+    )
     m.parse_args()
 
     # Disable logging messages except errors
-    logging.getLogger('').setLevel(logging.ERROR)
+    logging.getLogger("").setLevel(logging.ERROR)
 
     check_common_tools()
 
@@ -61,19 +54,20 @@ def do_setenv(m: Main, set_prog=True) -> int:
 
     anod_instance = ac.add_anod_action(
         name=m.args.spec_name,
-        primitive='build',
+        primitive="build",
         qualifier=m.args.qualifier,
         sandbox=sbx,
         upload=False,
-        env=BaseEnv.from_env()).anod_instance
+        env=BaseEnv.from_env(),
+    ).anod_instance
 
     saved_env = {k: v for k, v in os.environ.items()}
 
     if m.args.build_env:
-        if hasattr(anod_instance, 'build_setenv'):
+        if hasattr(anod_instance, "build_setenv"):
             anod_instance.build_setenv()
     else:
-        if hasattr(anod_instance, 'setenv'):
+        if hasattr(anod_instance, "setenv"):
             anod_instance.setenv()
 
     for var, value in os.environ.items():
@@ -81,13 +75,13 @@ def do_setenv(m: Main, set_prog=True) -> int:
             print('export %s="%s";' % (var, value))
 
             if m.args.verbose >= 1:
-                print('printf "I set %s=\\\"%s\\\"\\n\\n";' % (var, value))
+                print('printf "I set %s=\\"%s\\"\\n\\n";' % (var, value))
 
-            print(' ')
+            print(" ")
 
     print(BANNER)
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     exit(do_setenv(Main(), set_prog=False))

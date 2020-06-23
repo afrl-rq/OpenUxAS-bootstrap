@@ -1,6 +1,9 @@
 OpenUxAS-bootstrap
 ==================
 
+[![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 This respository is designed to get you up and running with [OpenUxAS](https://github.com/afrl-rq/OpenUxAS) development as quickly and efficiently as possible.
 This repository configures your environment, fetches OpenUxAS and its related repositories [OpenAMASE]() and [LmcpGen](), and provides a fully automated build system.
 

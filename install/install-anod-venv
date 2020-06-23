@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 
 """
+Install anod virtual environment script.
+
 This script automates the installation of the anod virtual environment, which
 is required to build OpenUxAS using anod. You should generally run this script
 from the root of bootstrap, like this:
@@ -16,86 +18,67 @@ from __future__ import annotations
 
 import logging
 import os
-import subprocess
 import sys
 import shutil
 
-from support.arguments import (add_logging_group,
-                               add_interactive_group,
-                               add_apt_group,
-                               add_force_argument,
-                               add_dry_run_argument,
-                               add_print_env_argument)
+from support.arguments import (
+    add_logging_group,
+    add_interactive_group,
+    add_apt_group,
+    add_force_argument,
+    add_dry_run_argument,
+    add_print_env_argument,
+)
 from support.commands import Command, run_command_and_exit_on_fail
 from support.log import configure_logging, log_wrap
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from typing import (
-        Dict,
-        List,
-    )
 
 # Directory in which this script is executing.
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 CWD = os.getcwd()
 SOFTWARE_DIR = os.path.join(CWD, "software")
 
-APT_UPDATE = Command(
-    cmd=['sudo',
-         'apt',
-         'update'],
-    description='Updating apt',
-)
+APT_UPDATE = Command(cmd=["sudo", "apt", "update"], description="Updating apt",)
 
 APT_INSTALL = Command(
-    cmd=['sudo',
-         'apt',
-         'install',
-         '-y',
-         'cmake',
-         'g++',
-         'pkg-config',
-         'uuid-dev',
-         'libyaml-dev',
-         'python3-dev',
-         'python3-distutils',
-         'python3-venv',
-         'python3-pip'],
-    description='Installing dependencies',
+    cmd=[
+        "sudo",
+        "apt",
+        "install",
+        "-y",
+        "cmake",
+        "g++",
+        "pkg-config",
+        "uuid-dev",
+        "libyaml-dev",
+        "python3-dev",
+        "python3-distutils",
+        "python3-venv",
+        "python3-pip",
+    ],
+    description="Installing dependencies",
 )
 
-VENV_DIR = os.path.join(CWD, 'vpython')
-VENV_PIP = os.path.join(VENV_DIR, 'bin', 'pip')
+VENV_DIR = os.path.join(CWD, "vpython")
+VENV_PIP = os.path.join(VENV_DIR, "bin", "pip")
 VENV_INSTALL = Command(
-    cmd=[sys.executable,
-         '-m',
-         'venv',
-         '--clear',
-         VENV_DIR],
-    description='Create python virtual environment',
+    cmd=[sys.executable, "-m", "venv", "--clear", VENV_DIR],
+    description="Create python virtual environment",
 )
 
 WHEEL_INSTALL = Command(
-    cmd=[VENV_PIP,
-         'install',
-         'wheel'],
-    description='Installing wheel in the virtual environment',
+    cmd=[VENV_PIP, "install", "wheel"],
+    description="Installing wheel in the virtual environment",
 )
 
 E3_INSTALL = Command(
-    cmd=[VENV_PIP,
-         'install',
-         'git+https://github.com/AdaCore/e3-core.git'],
-    description='Installing e3-core in the virtual environment',
+    cmd=[VENV_PIP, "install", "git+https://github.com/AdaCore/e3-core.git"],
+    description="Installing e3-core in the virtual environment",
 )
 
 ZMQ_INSTALL = Command(
-    cmd=[VENV_PIP,
-         'install',
-         'pyzmq'],
-    description='Install pyzmq in the virtual environment',
+    cmd=[VENV_PIP, "install", "pyzmq"],
+    description="Install pyzmq in the virtual environment",
 )
 
 
@@ -111,12 +94,10 @@ from the root of bootstrap, like this:
     `python3 util/install-anod-venv`
 """
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from argparse import ArgumentParser
 
-    argument_parser = ArgumentParser(
-        description=DESCRIPTION,
-    )
+    argument_parser = ArgumentParser(description=DESCRIPTION,)
     add_print_env_argument(argument_parser)
     add_dry_run_argument(argument_parser)
     add_force_argument(argument_parser)
@@ -144,27 +125,31 @@ if __name__ == '__main__':
             else:
                 shutil.rmtree(VENV_DIR)
         else:
-            logging.warning(log_wrap(
-                """\
+            logging.warning(
+                log_wrap(
+                    """\
                 The anod virtual environment already exists; skipping this
                 step. Remove it manually or use `--force` if you wish to
                 reinstall the virtual environment.\
                 """
-            ))
+                )
+            )
             skip_install_venv = True
 
     if skip_install_venv:
         exit(0)
 
-    if (args.update_apt and
-        (not args.interactive or
-         input('Update apt before installing packages? [Y/n] ') != 'n')):
+    if args.update_apt and (
+        not args.interactive
+        or input("Update apt before installing packages? [Y/n] ") != "n"
+    ):
         run_command_and_exit_on_fail(APT_UPDATE, args.dry_run)
 
-    if (args.install_packages and
-        (not args.interactive or
-         input('Install packages needed for anod virtual environment? '
-               '[Y/n] ') != 'n')):
+    if args.install_packages and (
+        not args.interactive
+        or input("Install packages needed for anod virtual environment? " "[Y/n] ")
+        != "n"
+    ):
         run_command_and_exit_on_fail(APT_INSTALL, args.dry_run)
 
     if sys.platform == "linux":

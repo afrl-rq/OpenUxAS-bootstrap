@@ -9,8 +9,6 @@ import logging
 import os
 import sys
 
-from typing import TYPE_CHECKING
-
 
 def check_tool(tool: str) -> str:
     """Check tool version and return its version.
@@ -23,7 +21,7 @@ def check_tool(tool: str) -> str:
     :rtype: str
     """
     try:
-        p = Run([tool, '--version'])
+        p = Run([tool, "--version"])
         version = p.out.splitlines()[0]
         logging.info("%s version: %s", tool, version)
         return version
@@ -32,14 +30,14 @@ def check_tool(tool: str) -> str:
         sys.exit(1)
 
 
-def check_common_tools():
+def check_common_tools() -> None:
     # The following variables are used to force recompilation
     # in case of some tool change.
-    gcc_version = check_tool('gcc')
-    os.environ['OPENUXAS_COMPILER_VERSION'] = gcc_version
-    cmake_version = check_tool('cmake')
-    os.environ['OPENUXAS_CMAKE_VERSION'] = cmake_version
-    check_tool('pkg-config')
+    gcc_version = check_tool("gcc")
+    os.environ["OPENUXAS_COMPILER_VERSION"] = gcc_version
+    cmake_version = check_tool("cmake")
+    os.environ["OPENUXAS_CMAKE_VERSION"] = cmake_version
+    check_tool("pkg-config")
 
 
 def create_anod_context(spec_dir: str) -> AnodContext:
