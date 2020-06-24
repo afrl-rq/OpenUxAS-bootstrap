@@ -1,0 +1,26 @@
+on: [push, pull_request]
+name: Checks
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.8]
+    runs-on: [ubuntu-latest]
+    name: black
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install black flake8 flake8-bugbear flake8-builtins flake8-comprehensions flake8-docstrings flake8-rst-docstrings mypy
+      - name: Run black
+        run: black -q --diff --check anod install lib
+      - name: Run flake8
+        run: flake8 anod install lib
+      - name: Run mypy
+        run: mypy --config-file .mypy.ini anod install lib
