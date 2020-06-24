@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from e3.anod.action import (
     Build,
     DownloadSource,
