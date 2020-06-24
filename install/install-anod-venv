@@ -72,7 +72,7 @@ WHEEL_INSTALL = Command(
 )
 
 E3_INSTALL = Command(
-    cmd=[VENV_PIP, "install", "git+https://github.com/AdaCore/e3-core.git"],
+    cmd=[VENV_PIP, "install", "e3-core"],
     description="Installing e3-core in the virtual environment",
 )
 
