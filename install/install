@@ -32,20 +32,21 @@ from support.log import configure_logging, wrap
 
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+CWD = os.getcwd()
 
 GNAT_INSTALL = Command(
     cmd=[sys.executable, os.path.join(ROOT_DIR, "install-gnat")],
     description="Install gnat",
 )
 
-GNAT_ENV = Command(cmd=GNAT_INSTALL.cmd + ["--print-env"],)
+GNAT_ENV = Command(cmd=GNAT_INSTALL.cmd + ["--printenv"],)
 
 VENV_INSTALL = Command(
     cmd=[sys.executable, os.path.join(ROOT_DIR, "install-anod-venv")],
     description="Install anod venv",
 )
 
-VENV_ENV = Command(cmd=VENV_INSTALL.cmd + ["--print-env"],)
+VENV_ENV = Command(cmd=VENV_INSTALL.cmd + ["--printenv"],)
 
 
 def pass_args(command: Command) -> Command:
@@ -173,6 +174,6 @@ if __name__ == "__main__":
             )
         )
         print(" ")
-        print("    eval `python3 ~/bootstrap/anod-setenv uxas`")
-        print("    eval `python3 ~/bootstrap/anod-setenv amase`")
+        print('    eval "$( python3 %s/anod printenv uxas )"' % CWD)
+        print('    eval "$( python3 %s/anod printenv amase )"' % CWD)
         print(" ")

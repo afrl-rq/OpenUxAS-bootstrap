@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+"""Anod environment printer."""
+
 from __future__ import annotations
 
 from lib.anod.util import check_common_tools, create_anod_context, create_anod_sandbox
@@ -16,18 +18,19 @@ BANNER = """
 # ----------------------------------------------------------------------------
 # If you are seeing this, then you forgot eval.
 #
-# You need to run anod-setenv like this:
+# You need to run anod printenv like this:
 #
-#   eval `./anod setenv uxas`
+#   eval "$( ./anod printenv %s )"
 #
 # Otherwise, no changes will be made to your environment.
 # ----------------------------------------------------------------------------
 """
 
 
-def do_setenv(m: Main, set_prog: bool = True) -> int:
+def do_printenv(m: Main, set_prog: bool = True) -> int:
+    """Print the environment for the given spec."""
     if set_prog:
-        m.argument_parser.prog = m.argument_parser.prog + " setenv"
+        m.argument_parser.prog = m.argument_parser.prog + " printenv"
     m.argument_parser.add_argument(
         "spec_name",
         help="spec to build. This is "
@@ -36,11 +39,14 @@ def do_setenv(m: Main, set_prog: bool = True) -> int:
     m.argument_parser.add_argument("--qualifier", help="optional qualifier")
     m.argument_parser.add_argument(
         "--sandbox-dir",
-        help="directory in which build artefacts are stored",
+        help="directory in which build artifacts are stored",
         default=SBX_DIR,
     )
     m.argument_parser.add_argument(
-        "--build-env", help="set build environment", action="store_true", default=False
+        "--build-env",
+        help="print build environment",
+        action="store_true",
+        default=False,
     )
     m.parse_args()
 
@@ -79,9 +85,9 @@ def do_setenv(m: Main, set_prog: bool = True) -> int:
 
             print(" ")
 
-    print(BANNER)
+    print(BANNER % m.args.spec_name)
     return 0
 
 
 if __name__ == "__main__":
-    exit(do_setenv(Main(), set_prog=False))
+    exit(do_printenv(Main(), set_prog=False))

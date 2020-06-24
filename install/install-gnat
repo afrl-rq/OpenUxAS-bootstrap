@@ -147,7 +147,7 @@ if __name__ == "__main__":
 
     configure_logging(args)
 
-    if args.print_env:
+    if args.printenv:
         print(ENV_COMMANDS)
         exit(0)
 

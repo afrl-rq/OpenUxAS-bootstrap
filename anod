@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
     command_arg = m.argument_parser.add_argument(
         "command",
-        choices=["build", "setenv", "devel-setup"],
+        choices=["build", "printenv", "devel-setup"],
         help="the subcommand to be run.",
     )
 
@@ -62,10 +62,10 @@ if __name__ == "__main__":
 
         exit(do_build(m))
 
-    elif m.args.command == "setenv":
-        from lib.anod_setenv import do_setenv
+    elif m.args.command == "printenv":
+        from lib.anod_printenv import do_printenv
 
-        exit(do_setenv(m))
+        exit(do_printenv(m))
 
     elif m.args.command == "devel-setup":
         from lib.anod_devel_setup import do_devel_setup

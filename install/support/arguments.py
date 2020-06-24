@@ -57,6 +57,8 @@ def add_interactive_group(argument_parser: ArgumentParser) -> None:
         help="run in interactive mode: ask before executing all actions",
     )
     interactive_group.add_argument(
+        "-y",
+        "--yes",
         "--automatic",
         action="store_false",
         dest="interactive",
@@ -121,7 +123,7 @@ def add_dry_run_argument(argument_parser: ArgumentParser) -> None:
 def add_print_env_argument(argument_parser: ArgumentParser) -> None:
     """Add an argument to print the environment set up by the script."""
     argument_parser.add_argument(
-        "--print-env",
+        "--printenv",
         action="store_true",
         default=False,
         help="print out the environment for the tools installed and quit",
