@@ -72,8 +72,8 @@ WHEEL_INSTALL = Command(
 )
 
 E3_INSTALL = Command(
-    cmd=[VENV_PIP, "install", "e3-core"],
-    description="Installing e3-core in the virtual environment",
+    cmd=[VENV_PIP, "install", "e3-core", "e3-testsuite"],
+    description="Installing e3-core and e3-testsuite in the virtual environment",
 )
 
 ZMQ_INSTALL = Command(
@@ -158,3 +158,4 @@ if __name__ == "__main__":
     run_command_and_exit_on_fail(VENV_INSTALL, args.dry_run)
     run_command_and_exit_on_fail(WHEEL_INSTALL, args.dry_run)
     run_command_and_exit_on_fail(E3_INSTALL, args.dry_run)
+    run_command_and_exit_on_fail(ZMQ_INSTALL, args.dry_run)
