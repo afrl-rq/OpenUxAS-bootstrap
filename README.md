@@ -5,275 +5,424 @@ OpenUxAS-bootstrap
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 This respository is designed to get you up and running with [OpenUxAS](https://github.com/afrl-rq/OpenUxAS) development as quickly and efficiently as possible.
-This repository configures your environment, fetches OpenUxAS and its related repositories [OpenAMASE]() and [LmcpGen](), and provides a fully automated build system.
+This repository contains scripts to help you configure your environment and provides a fully automated, reproducible build for OpenUxAS.
 
-There are two primary ways to use this repository, in order of simplicity:
+OpenUxAS is complex project, so there's a lot to talk about here.
+If you want to get started using OpenUxAS as quickly as possible, you can jump to [Getting Started](#getting-started).
+We've organized this README into sections, to simplify navigation.
 
-1. using [Vagrant](https://www.vagrantup.com/) to create a new, fully configured virtual machine
-2. configuring an existing machine
+*Table of Contents*
 
-We'll talk about Vagrant first.
+1. [Getting Started](#getting-started)
+   1. [Basic Requirements](#uxas-requirements)
+   2. [OpenUxAS Users](#uxas-users)
+   3. [OpenUxAS Developers](#uxas-developers)
+2. [Detailed Discussion](#detailed-information)
+   1. [Organization of this Repository](#organization)
+   2. [Install Support](#install)
+   3. [The Anod Build System](#anod)
+      1. [What is Anod?](#what-is-anod)
+      2. [Why Anod?](#why-anod)
+      3. [Understanding Anod](#anod-understanding)
+      4. [Using Anod during OpenUxAS Development](#anod-development)
+   4. [Division of Labor: OpenUxAS and OpenUxAS-bootstrap](#division)
+      1. [Adding a New Dependency to OpenUxAS](#new-dependency)
 
+There are three components discussed in this README:
 
-Vagrant-Based Setup
-===================
+1. [OpenUxAS](https://github.com/afrl-rq/OpenUxAS) — the project that you wish to use or develop.
+2. OpenUxAS-bootstrap — this repository, which provides build automation and a preconfigured environment.
+3. Anod — the system used to provide a fully automated and reproducible build for OpenUxAS.
 
-[Vagrant](https://www.vagrantup.com/) is a set of tools that create, provision, and control virtual machines.
-The great thing about Vagrant is virtual machines can be described declaratively.
-Practically speaking, this means that virtual-machine configurations can be easily placed under version control.
-This repository contains a Vagrantfile that will create a virtual machine based on Ubuntu 18.04 LTS and provision it with all necessary dependencies so that you can immediately build and run OpenUxAS.
-When you're done playing with OpenUxAS, you can use Vagrant to destroy the virtual machine, freeing up disk space.
+# 1. Getting Started<a name="getting-started" />
 
-To get started with Vagrant, you will first need to:
+One of the aims of this repository is to simplify to the greatest extent practicable the process of getting started with OpenUxAS.
+There are two perspectives we target:
 
-1. install Vagrant, after downloading it from https://www.vagrantup.com/downloads.html
-2. install a virtual machine provider, preferably VirtualBox, which is available from https://www.virtualbox.org/wiki/Download_Old_Builds_6_0.
-   ***WARNING***: Vagrant 2.2.6, the current version of Vagrant, does not support VirtualBox 6.1, the newest version of VirtualBox.
-   Please make sure to download and install version 6.0 from https://www.virtualbox.org/wiki/Download_Old_Builds_6_0 and not from www.virtualbox.org/wiki/Downloads.
-3. install a Vagrant plugin named "vagrant-disksize" to allow increasing the virtual machine disk capacity:
+1. User: someone who wishes to try out or use OpenUxAS; and
+2. Developer: someone who wishes to contribute to or extend OpenUxAS.
 
-    vagrant plugin install vagrant-disksize
+Both of these use cases share the same basic requirements, presented below.
 
-> ***Shortcut***: Once this is done, if you want a graphical machine that you can keep using after it is configured, you can mostly forget about the rest of this README, open a terminal (on *NIX machines) or a command prompt (on Windows), navigate to the directory where you've cloned this repository, and run `./build-vagrant-gui`.
-> This will configure a graphical machine and run all of the builds related to OpenUxAS.
-> After the script completes, you can log in (see "Vagrant Username and Password", below) and immediately run examples (see "Running Examples", below).
+## 1.1. Basic Requirements<a name="uxas-requirements" />
 
-Once Vagrant is installed, open a terminal (on *NIX machines) or a command prompt (on Windows), navigate to the directory where you've cloned this repository, and run the command (or see "GUI Machine", below, if you want a machine with a GUI):
+This repository makes assumptions about the platform on which OpenUxAS will be built.
+We assume:
 
-    vagrant up uxas
+1. Linux, specifically Ubuntu 18.04 or Ubuntu 20.04
+2. git
+3. python 3.8
 
-Vagrant will download the base image for Ubuntu 18.04 LTS, install needed software, and configure the environment for building OpenUxAS.
+Other dependencies required for OpenUxAS will be installed either by the install scripts in this repository or will be built as part of the reproducible build of OpenUxAS.
 
-Once the machine has been created, you can interact with it by running the command:
+> _**Note**: OpenUxAS can be built on other platforms, however the install scripts provided in this repository will probably not work correctly on them._
 
-    vagrant ssh uxas
+If you're not a Linux user, we recommend that you install a virtual machine provider, like [VirtualBox](https://www.virtualbox.org/wiki/Downloads).
+Then, we recommend that you download the desktop image of [Ubuntu 20.04](https://releases.ubuntu.com/20.04) and create a virtual machine from the image.
+VirtualBox will help you do this; many tutorials can be found on the Internet that will help you with this step.
 
-This will log you into the machine as the user "vagrant".
-You can now navigate into the `bootstrap` directory and run the build, like this:
+> _**Note**: the default settings suggested by VirtualBox are not appropriate for building and running OpenUxAS._
+> _You should make sure to provide at least **8GB of RAM** and **20GB of disk space**._
 
-    cd ~vagrant/bootstrap && python3 anod-build uxas
+Throughout the remainder of the README, we will write commands that you should enter in your Linux terminal like this:
 
-That will fetch remaining dependencies and build the C++ version of OpenUxAS. 
+    ~/bootstrap$ command argument
 
-Once the build is complete, you will be able to get to the OpenUxAS, OpenAMASE and LmcpGen repos by looking under the `uxas` directory at the top of the home directory.
+This means that you have changed to the directory `~/bootstrap` in your Linux machine and you are going to execute the command `command` with the arguments `argument`.
+If you would like to copy-paste commands from this README, you should only copy the part that begins after the `$`.
 
-Additional build and advanced configuration options are discussed below.
+## 1.2. OpenUxAS Users<a name="uxas-users" />
 
-*Note*: if you want to build the machine and then run builds in one command, you can:
+There are three steps you need to complete before you can use OpenUxAS:
 
-    vagrant up uxas && vagrant ssh uxas -c "cd ~vagrant/bootstrap && python3 anod-build uxas"
+1. install the build system
+2. configure your environment for the build
+3. build OpenUxAS and OpenAMASE
 
-Additional build commands can be chained to this, within the quotes.
+Once these steps are completed, you can run OpenUxAS.
 
-Vagrant Username and Password
------------------------------
+### 1.2.1. Install the Build System
 
-As is common for Vagrant machines, the username is "vagrant" and the password is "vagrant".
+To get started as a user of OpenUxAS, simply run this command in a terminal:
 
-Other Vagrant Commands
-----------------------
+    ~$ curl -L https://github.com/AdaCore/OpenUxAS-bootstrap/raw/master/install/bootstrap | bash
 
-> ***Shortcut***: If you configured a graphical machine, you can choose to ignore Vagrant and manage the machine through VirtualBox's user interface.
-> In that case, you can ignore the commands below.
-> **Note**: If you do this, the Vagrant-provided shared folder `bootstrap-src-shared` will not be available; this is not terribly important as it mostly exists to enable initial provisioning of the machine.
+The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's master branch and will then execute the script using `bash`. 
+The script will confirm that basic dependencies are met and will then clone this repository and execute the `install` script in the `install` directory in this repository. 
 
-You can suspend your Vagrant machine, saving all state, with:
+Once the command has successfully executed, you will have a new directory `bootstrap` in your home directory.
 
-    vagrant suspend uxas
+### 1.2.2. Configure Your Environment for the Build
 
-Likewise, you can shut it down with:
+To use the build system in `bootstrap`, you need to configure your environment.
+You can do so like this:
 
-    vagrant halt uxas
+    ~$ eval "$( ~/bootstrap/install/install-gnat --printenv )"
+    ~$ eval "$( ~/bootstrap/install/install-anod-venv --printenv )"
 
-Once shut down, you start the machine again with:
+If you do not wish to enter these commands each time you want to build OpenUxAS, you can add them to your profile.
 
-    vagrant up uxas
+### 1.2.3. Build OpenUxAS and OpenAMASE
 
-Finally, if you want to restart, **do not** restart from within the machine, or shared folders will *not* be mapped.
-Instead, use:
+Now, you can build OpenUxAS and OpenAMASE:
 
-    vagrant reload uxas
+    ~/bootstrap$ ./anod build uxas
+    ~/bootstrap$ ./anod build amase
 
-When you are done with your Vagrant machine, you can destroy it with:
+### 1.2.4. Running OpenUxAS
 
-    vagrant destroy uxas
+The best way to get a feel for OpenUxAS is to run one of the examples provided with OpenUxAS.
+You can do that like this:
 
+    ~/bootstrap$ ./run-example 02_Example_WaterwaySearch
 
-Vagrant GUI Machine
--------------------
+OpenAMASE will start and OpenUxAS will be launched in a separate process.
+Click on the run button in OpenAMASE once the OpenAMASE window opens.
+The scenario will start.
 
-If you plan to do development work on OpenUxAS using Vagrant, you may prefer to have a machine with a GUI.
-A spec is provided that adds Ubunutu desktop and provides a graphical login.
-You can build this machine with:
+You can get a listing of the other examples that can be run with `run-example` by using:
 
-    vagrant up uxas-gui
+    ~/bootstrap$ ./run-example --list
 
-You can also build this machine using the supplied script:
+## 1.3. OpenUxAS Developers<a name="uxas-developers" />
 
-    ./build-vagrant-gui
+The steps required to start developing OpenUxAS are more complex than those required to start using OpenUxAS.
+The added complexity arises primarily because we expect that developers will want a fair degree of control over their development environment so that they can tailor their environment to suit their experience and preference.
 
-which will run all of the OpenUxAS builds automatically.
+We provide two approaches to developer setup:
+1. automated: we provide a script that configures OpenUxAS, OpenAMASE, and LMCPgen for development
+2. manual: we provide instructions for how to flexibly configure any of the above for development
 
-This machine takes significantly longer to build, downloads about twice as much data, and requires twice as much RAM as the non-GUI machine.
+### 1.3.1. Automatic Developer Setup
 
-All of the commands listed above will work for this machine; you replace `uxas` with `uxas-gui`.
-So to log in from a console:
+To get started as a user of OpenUxAS, simply run this command in a terminal:
 
-    vagrant ssh uxas-gui
+    ~$ curl -L https://github.com/AdaCore/OpenUxAS-bootstrap/raw/master/install/bootstrap-devel | bash
 
-You can also log in via the graphical interface, which VirtualBox will show automatically.
+The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's master branch and will then execute the script using `bash`. 
+The script will confirm that basic dependencies are met and will then clone this repository and execute the `install` script in the `install` directory in this repository. 
 
+Once the command has successfully executed, you will have a new directory `bootstrap` in your home directory.
+Within the `bootstrap` directory, you will have a directory `develop`.
+The `develop` directory contains:
+- `LmcpGen` - a clone of the LmcpGen repository
+- `OpenAMASE` - a clone of the OpenAMASE repository
+- `OpenUxAS` - a clone of the OpenUxAS repository
 
-Running Examples
-================
+The contents of these three repositories will be used whenever OpenUxAS is built with anod.
 
-OpenUxAS includes a large number of examples, which you can find in `~uxas/OpenUxAS/examples`.
-To make running these examples much more convient, this repository provides a Python script `run-example.py` that you can use to run examples.
-After you have built OpenUxAS and OpenAMASE, switch to the `bootstrap` directory and run an example like this:
+### 1.3.2. Manual Developer Setup
 
-    cd ~bootstrap && python3 run-example.py 02_Example_WaterwaySearch
+To get started as a developer of OpenUxAS, simply run this command in a terminal:
 
-The `run-example.py` script provides built-in help, which you can access with
+    ~$ curl -L https://github.com/AdaCore/OpenUxAS-bootstrap/raw/master/install/bootstrap | bash
 
-    python3 run-example.py -h
+The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's master branch and will then execute the script using `bash`. 
+The script will confirm that basic dependencies are met and will then clone this repository and execute the `install` script in the `install` directory in this repository. 
 
+Once the command has successfully executed, you will have a new directory `bootstrap` in your home directory.
 
-Configuring an Existing Machine
-===============================
+You may clone OpenUxAS, OpenAMASE, or LCMPgen manually, placing them wherever you would like.
+Then, you need to tell the build system that it should use your clone, rather than a fresh checkout of the repository.
+You do this by editing `specs/config/repositories.yaml`.
+Here's an example of how you would update the entry for OpenUxAS:
 
-If you don't wish to use a virtual machine, you can use this repository to help you configure an existing machine to build OpenUxAS.
+    openuxas:
+      vcs: external
+      url: /absolute/path/to/your/clone
+      revision: None
 
-Common prerequisites
---------------------
+Alternatively, you can use `anod` to clone the repository for you, like this:
 
-You need to ensure that you have:
+    ~/bootstrap$ ./anod devel-setup uxas
 
-* Git
-* Cmake
-* C++ compiler
-* pkg-config
-* libuuid (uuid-dev package on ubuntu or debian)
-* A Python 3.x with pip and venv
-* Ada compiler (to build the Ada demo)
+Anod will clone OpenUxAS, placing it in `bootstrap/develop/OpenUxAS` and will update the `repositories.yaml` file for you.
+You can configure where `anod devel-setup` places the repository using command-line options; see `anod devel-setup --help` for complete options.
 
-*Note: the build system will pick the compiler on the path.*
-If you change the compiler in the path, a full rebuild will be triggered.
+### 1.3.3. Configure Your Environment for the Build
 
-Bootstrapping your environment
-------------------------------
+To use the build system in `bootstrap`, you need to configure your environment.
+You can do so like this:
 
-After installing the prerequisites, in order to bootstrap your environment you need to run the following command:
+    ~$ eval "$( ~/bootstrap/install/install-gnat --printenv )"
+    ~$ eval "$( ~/bootstrap/install/install-anod-venv --printenv )"
 
-    ./install_env
+If you do not wish to enter these commands each time you want to build OpenUxAS, you can add them to your profile.
 
-*Note: if the default python in your path is a python 2.x you may have to run*:
+### 1.3.4. Build OpenUxAS and OpenAMASE
 
-    python3 install_env
+Now, you can build OpenUxAS and OpenAMASE:
 
-This step only needs to be done once. It will do the following:
+    ~/bootstrap$ ./anod build uxas
+    ~/bootstrap$ ./anod build amase
 
-* Check your environment for the prerequisites
-* Create, under the 'vpython' subdirectory, a python 3.x virtual environment with the necessary modules to launch anod-build command (see next section).
+### 1.3.5. Configure Your Environment to Run OpenUxAS or OpenAMASE
 
-If you do not wish to update your path permanently, you can run
+You can use anod to automatically configure your environment to run OpenUxAS, OpenAMASE, or any of the other components that anod builds.
+For example, to configure your environment to run OpenUxAS:
 
-    . ./setup_env
+    ~/bootstrap$ eval "$( ./anod printenv uxas )"
 
-which configures your path for your current terminal session.
+If you do not wish to enter this command each time you want to run OpenUxAS, you can add it to your profile.
 
-Building the project and its dependencies
------------------------------------------
+### 1.3.6. Configure Your Environment to Build OpenUxAS Manually
 
-To build, run:
+If you develop OpenUxAS, you will probably not want to use anod to rebuild OpenUxAS each time you make changes.
+As is explained [below](#anod), anod will completely rebuild OpenUxAS whenever any change is made, as though you had cleaned the build first.
+Instead, you should use make to build OpenUxAS.
 
-    ./anod-build <target>
+Before you can use make to build OpenUxAS, you need to configure your environment, like this:
 
-where target can be:
+    ~/bootstrap$ eval "$( ./anod printenv uxas --build-env )"
 
-* uxas: to build the C++ uxas executable
-* uxas-ada: to build the Ada demo
-* amase: to build the simulator
+This will ensure that make is able to find all of the dependencies that anod built.
+You can now change to your OpenUxAS clone and build OpenUxAS using make:
 
-Other targets are available to build some of the dependencies:
+    /path/to/OpenUxAS$ make all
 
-* lmcpgen: to build lmcpgen
-* uxas-lmcp: will generate sources and build them for a given language.
-    To select the language (ada, cpp, java, py), add the switch --qualifier=lang=<LANG>
+Once you are finished making modifications to OpenUxAS and before you push your changes, you should re-run the anod build.
+Essentially, this will repeat on your local machine the same build that will be performed during continuous integration, ensuring that your build is consistent and reproducible.
 
 
-Additional Details
-==================
+# 2. Detailed Discussion<a name="discussion" />
 
-Directory structure
--------------------
+This section of the README contained more detailed discussion of this repository and the tools it provides.
 
-| File                            | Description
-| ------------------------------- | -----------
-|./README.md                      | This file.
-|./anod-build                     | This the tool to build any spec present in the specs subdirectory. You can use the `--help` switch to see available options
-|./install_env                    | Creates the Python 3.x environment necessary to launch `anod-build`
-|./setup_env                      | Source that script to put the Python environment in your PATH
-|./specs/*.anod                   | The build specifications for the different component of UxAS
-|./specs/config/repositories.yaml | Configuration file containing the list of repositories used
-|./specs/patches/*.patch          | Contains some local patches for some corresponding anod specs
-|./sbx                            | The sandbox in which everything is build. You will find a directory `<platform>/<name>` for each component built. These directories are called 'build space's (generated)
-|./vpython                        | The python environment to run anod-build (generated)
+## 2.1 Organization of this Repository<a name="organization" />
 
-Each build space usually has the following subdirectories:
+This repository contains the following:
 
-| Directory | Description
-| --------- | -----------
-| ./src     | Location in which sources are installed
-| ./build   | Directory in which the build is performed
-| ./install | Directory in which a component is installed
+* anod - the top-level script providing build automation for OpenUxAS
+* CONTRIBUTING.md - instructions for contributors to this repository
+* install - scripts (and supporting code) to support installation of this repository
+* lib - support for the anod top-level script
+* README.md - this file
+* run-example - the top-level script for running OpenUxAS examples
+* specs - specifications of components that anod can build
 
-Repositories Used
------------------
+## 2.2 Install Support<a name="install-support" />
 
-The list of repositories used is in specs/config/repositories.yaml. The file is configured
-so that all repositories are automaticly cloned. In case you want to manage a given checkout
-you can change the repositories.yaml file. For example if you want to control the lmcpgen
-sources, replace:
+To simplify the installation of the dependencies needed to run anod, we provide a top-level install script in the `install` directory.
+Assuming you have cloned this repository to `~/bootstrap`, you would run the install script like this:
 
-    lmcpgen:
-        vcs: git
-        url: https://github.com/AdaCore/LmcpGen.git
-        revision: ada
+    ~/bootstrap$ install/install
 
-By:
+The script automates the installation of GNAT Community Edition, which is needed to build the OpenUxAS Ada services, and the python virtual environment that is needed to run anod.
+When run as above, the script is interactive, so you can choose which components to install.
+You can always rerun the script; it will not make changes unless needed (or unless you specify `--force`).
 
-    lmcpgen:
+The script offers extensive configuration options, which you can see with `--help`.
+
+After running, the script prints a summary of what it did.
+This summary includes the environment configuration needed to run anod.
+
+To see the summary again without making any changes, you can run:
+
+    ~/bootstrap$ install/install -ny
+
+The `-n` option instructs the installer to perform a dry run; no changes are made.
+The `-y` option instructs the installer to run in automatic mode. 
+
+## 2.3. The Anod Build System<a name="anod" />
+
+The build automation for OpenUxAS is based on anod.
+
+### 2.3.1. What is Anod?<a name="what-is-anod" />
+
+Anod is a component of [e3](https://github.com/AdaCore/e3-core), a Python-based build framework that is built and used by AdaCore to provide reproducible builds of AdaCore's professionally supported software.
+AdaCore's business is the development and support of tools for high-assurance software.
+As such, AdaCore requires full traceability and reproducibility of builds over long periods of time.
+The tools built on top of e3 provide this capability.
+
+E3 and anod are open-source software.
+
+### 2.3.2. Why Anod?<a name="why-anod" />
+
+Basing the OpenUxAS build automation on anod allows OpenUxAS builds to benefit from similar stability, traceability, and reproducibility to AdaCore's professional tools. 
+Given the scope of the OpenUxAS project and the number of collaborators, this is a significant benefit.
+
+Anod uses lightweight specifications that describe how to build and test software components.
+Each anod spec describes:
+
+  * how to create source packages from repositories;
+  * the dependencies of the component; and
+  * how to build the component.
+
+Importantly, anod delegates the actual build of each component to that component's native build system.
+This greatly simplifies the process of updating components or including new components in the build, as component build files do not have to be rewritten.
+
+Finally, anod encapsulates most dependencies of the build environment — especially libraries.
+This ensures that developers on different platforms can reproduce similar builds.
+This also means that the resulting executable is static and complete, which can be redistributed easily on similar platforms.
+
+### 2.3.3. Understanding Anod<a name="anod-understanding" />
+
+The aim of this section is not to provide comprehensive information about anod, but to provide sufficient information to clarify some of the details about how anod organizes artifacts.
+
+#### 2.3.3.1. Anod Specs<a name="anod-specs" />
+
+Anod describes software components using lightweight specifications.
+Anod specs are contained in the `specs` directory in this repository.
+Each anod spec is written in Python and inherits from the spec class that is defined in e3.
+
+Good examples of specs include `lmcpgen.anod` and `uxas.anod`, which provide examples for many common elements of specs.
+
+Of particular note is the `source_pkg_build` method, which defines how anod should fetch the source for the component.
+The `checkout` argument to `SourceBuilder` is used to identify the key to the repository that holds the source.
+This key must match an entry in `repositories.yaml`, which is contained in the `specs/config` directory.
+
+#### 2.3.3.2. Anod Repositories<a name="anod-repositories" />
+
+As noted [above](#anod-specs), each spec identifies the repository that holds its source by way of a key that must match an entry in the `repositories.yaml`, which is contained in the `specs/config` directory.
+This configuration file lists all of the repositories for components that may be built.
+
+For each repository, the version-control system is identified, a URL to the repository is given, and a specific revision is identified.
+For git, the most common version-control system, the revision is a refspec and may be:
+
+- a specific branch, such as "master"
+- a tag, such as "v2.0.0"
+- a specific commit, identified directly
+
+#### 2.3.3.4. The Anod Sandbox<a name="anod-sandbox" />
+
+Anod does all of its work in a *sandbox*, a directory structure that is assumed to be under anod's control and that has minimal dependencies.
+The anod sandbox is a critical component of anod's ability to provide reproducible builds. 
+Anod therefore assumes that it has complete control over the sandbox.
+In general, anod will freely delete and recreate any element of the sandbox during the build process.
+
+The two most important elements of the sandbox are the `vcs` and the platform directory, which, on 64-bit Linux is `x86_64-linux`.
+
+The `vcs` directory contains anod's managed clones of version-control repositories.
+You should not make changes to the repositories that are kept under `vcs`.
+If you do, anod will always attempt to stash those changes during the build, so that it can check out the specific version of the repository that is listed in `repositories.yaml` (see [above](#anod-repositories)).
+
+The platform directory (e.g., `x86_64-linux`) contains the artifact directories for each project.
+For example, after a successful anod build of OpenUxAS with `anod-build uxas`, the platform directory will contain `uxas-release`.
+This is the project directory for OpenUxAS.
+
+Inside each project directory is a set of nine artifact directories:
+
+  - binary
+  - build
+  - install
+  - log
+  - pkg
+  - results
+  - src
+  - test
+  - tmp
+
+Not all of these directories are used at all times for all projects.
+We will focus on three of these directories: `src`, `build`, and `install`.
+
+  - The `src` directory contains a copy of the repository for the project.
+    Anod makes this copy because some build systems may modify the sources during the build.
+    Since anod's goal is reproducibility, copying the repository contents at the start of each build is an important step.
+
+  - The `build` directory generally contains build outputs for the project, but this depends on the configuration of the project's native build system.
+    For OpenUxAS, the `build` directory contains the object files and the final binary.
+
+  - The `install` directory generally contains the final result of the build in a location that is representative of an install.
+    For OpenUxAS, the `install` directory contains `bin/uxas`, which is the OpenUxAS binary.
+
+> ***Important***
+> 
+> Anod will always remove and recreate all of the directories for a project if there are any changes to the project's repository.
+> This means that you should *never* modify the contents of the `src` directory for a given project.
+
+### 2.3.4. Using Anod during OpenUxAS Development<a name="anod-development" />
+
+If you wish to develop OpenUxAS, then you *must* create your own clone of the OpenUxAS repository, rather than relying on the clone that anod keeps in `sbc/vcs`.
+This is because, as noted [above](#and-sandbox), anod will stash any changes you make to its clone of a repository during the build process.
+
+Once you have created your own clone, you should update `specs/config/repositories.yaml` to tell anod where to find your clone.
+Using OpenUxAS as an example, you would make the following changes:
+
+    openuxas:
         vcs: external
-        url: /some_absolute_dir_containing_your_checkout
-        revision: None
+        url: /path/to/your/clone
+        revision: none
 
-In that case the build script will pick the content of your directory instead of doing an
-automatic checkout. In that case the script does not try to do updates.
+With these changes, anod will no longer attempt to fetch a specific revision of OpenUxAS from git.
+Instead, anod will copy your local clone at the beginning of the build process.
 
-Environment
------------
+Before starting development, you should use anod to build OpenUxAS.
+This will ensure that all dependencies have been built and are ready for use.
+Then, you export the build environment by running `anod printenv`, like this:
 
-In order to add in your environment the result of a given build you can do:
+    ~/bootstrap$ eval "$( ./anod printenv uxas --build-env )"
 
-   $ eval `./anod-setenv uxas`
+Now, as you do your development work, you won't need to use anod anymore.
+Instead, you should use the local build system to build your changes.
+For OpenUxAS, you would use `make all`.
 
-The command in that case add uxas to your path so that it can be used.
+You should only use anod when you are ready to test the build, prior to committing your changes.
+You can think of anod as standing in for the continuous-integration process, on your local machine.
+Anod will then copy your sources, including all changes, and rebuild OpenUxAS within the context of its sandbox.
 
-If you want to develop on the uxas project. First do an initial build:
+You can force a full rebuild by passing `--force` to anod, like this:
 
-   $ ./anod-build uxas
+    ~/bootstrap$ ./anod build uxas --force
 
-Then modify your env to add into your environment all the dependency needed
-to build uxas:
 
-   $ eval `./anod-setenv uxas --build-env`
+## 2.4. Division of Labor: OpenUxAS and OpenUxAS-bootstrap<a name="division" />
 
-Finally launch for example gnatstudio or gps on the uxas project file:
+OpenUxAS-bootstrap (this repository) is intended to provide build automation support for OpenUxAS and to make it easier to get started with OpenUxAS development.
+As such, most changes to OpenUxAS should be made in the OpenUxAS repository and should not impact this repository.
 
-   $ gnatstudio -P <path to your uxas checkout>/src/UxasAll.gpr
+However, if a new dependency is added to OpenUxAS, the new dependency will need to be added to this repository.
 
-Force rebuild
--------------
+### 2.4.1. Adding a New Dependency to OpenUxAS<a name="new-dependency" />
 
-If you pass --force to uxas-build command, the current state will be ignored and
-everything rebuilt from scratch.
+Whenever a new dependency is added to OpenUxAS, that dependency should be added to OpenUxAS-bootstrap as well.
+In particular, the following should be done:
+
+  - a new spec should be added to `specs` to describe the new dependency (see [above](#anod-specs))
+  - an entry in `specs/config/repositories.yaml` should be added for the new dependency (see [above](#anod-repositories))
+
+If the new dependency is on the "master" or "develop" branch of OpenUxAS, the dependency should be added to the "master" branch of OpenUxAS-bootstrap.
+
+If the new dependency is on another branch of OpenUxAS, the dependency should be added to a new branch of OpenUxAS-bootstrap of the same name.
+For example, in OpenUxAS, the "DAIDALUS_integration" branch depends upon the NASA well-clear library. 
+A branch has thus been added to OpenUxAS-bootstrap that provides an anod spec for the well-clear library and that lists the NASA well-clear repository in `repositories.yaml`. 
+These two branches are tested and deployed together.
