@@ -3,9 +3,9 @@
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # First, let's set up our environment.
-eval "$( "${ROOT_DIR}"/anod-setenv uxas )"
-eval "$( "${ROOT_DIR}"/anod-setenv uxas-ada )"
-eval "$( "${ROOT_DIR}"/anod-setenv amase )"
+eval "$( "${ROOT_DIR}"/anod printenv uxas )"
+eval "$( "${ROOT_DIR}"/anod printenv uxas-ada )"
+eval "$( "${ROOT_DIR}"/anod printenv amase )"
 
 # Now, as a sanity check, let's make sure that uxas and amase have been built.
 if [ ! -f "${UXAS_INSTALL_DIR}"/bin/uxas ]; then
