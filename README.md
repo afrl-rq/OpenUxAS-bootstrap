@@ -9,7 +9,7 @@ This respository is designed to get you up and running with [OpenUxAS](https://g
 This repository contains scripts to help you configure your environment and provides a fully automated, reproducible build for OpenUxAS.
 
 OpenUxAS is complex project, so there's a lot to talk about here.
-If you want to get started using OpenUxAS as quickly as possible, you can jump to the [quick-start guide](#getting-started).
+If you want to get started using OpenUxAS as quickly as possible, you can jump to the [quick-start guide](#quick-start).
 We've organized this README into sections, to simplify navigation.
 
 *Table of Contents*
