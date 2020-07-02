@@ -42,7 +42,16 @@ SOFTWARE_DIR = os.path.join(CWD, "software")
 APT_UPDATE = Command(cmd=["sudo", "apt", "update"], description="Updating apt",)
 
 APT_INSTALL = Command(
-    cmd=["sudo", "apt", "install", "-y", "fontconfig", "libx11-xcb1", "libx11-6"],
+    cmd=[
+        "sudo",
+        "apt",
+        "install",
+        "-y",
+        "fontconfig",
+        "libx11-xcb1",
+        "libx11-6",
+        "libncurses5",
+    ],
     description="Installing dependencies",
 )
 
