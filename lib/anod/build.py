@@ -8,6 +8,7 @@ from e3.anod.action import (
     Checkout,
     CreateSource,
 )
+from e3 import hash
 from e3.anod.checkout import CheckoutManager
 from e3.env import Env
 from e3.job.walk import Walk
@@ -125,18 +126,38 @@ class UxasDownloadSource(UxasJob):
     def run(self):
         builder = self.data.builder
         cache_dir = self.sandbox.tmp_cache_dir
-        if os.path.isfile(os.path.join(cache_dir, builder.filename)):
+
+        skip = False
+        if os.path.isfile(os.path.join(cache_dir, builder.filename)) and os.path.isfile(
+            os.path.join(cache_dir, builder.filename + ".sha1")
+        ):
+            with open(os.path.join(cache_dir, builder.filename + ".sha1"), "rb") as f:
+                checksum = f.read(1024).decode()
+            skip = checksum == hash.sha1(os.path.join(cache_dir, builder.filename))
+
+        if skip:
             self.run_status = ReturnValue.skip
         else:
             if builder.url.startswith("https://") or builder.url.startswith("http://"):
+
+                if os.path.isfile(os.path.join(cache_dir, builder.filename)):
+                    rm(os.path.join(cache_dir, builder.filename))
+                if os.path.isfile(os.path.join(cache_dir, builder.filename + ".sha1")):
+                    rm(os.path.join(cache_dir, builder.filename + ".sha1"))
+
                 s = HTTPSession(base_urls=[builder.base_url])
                 result = s.download_file(
                     url=builder.filename, dest=cache_dir, filename=builder.name
                 )
                 if result is None:
+                    rm(os.path.join(cache_dir, builder.filename))
                     self.run_status = ReturnValue.failure
                 else:
                     self.run_status = ReturnValue.success
+                    with open(
+                        os.path.join(cache_dir, builder.filename + ".sha1"), "w"
+                    ) as f:
+                        f.write(hash.sha1(os.path.join(cache_dir, builder.filename)))
             else:
                 cp(
                     os.path.join(self.sandbox.specs_dir, "patches", builder.url),
