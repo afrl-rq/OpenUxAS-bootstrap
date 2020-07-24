@@ -28,12 +28,12 @@ pugixml:
     revision: "v1.2"
 lmcpgen:
     vcs: git
-    url: https://github.com/AdaCore/LmcpGen.git
-    revision: ada
+    url: https://github.com/afrl-rq/LmcpGen.git
+    revision: develop
 openuxas:
     vcs: git
-    url: https://github.com/AdaCore/OpenUxAS.git
-    revision: ada
+    url: https://github.com/afrl-rq/OpenUxAS.git
+    revision: develop
 amase:
     vcs: git
     url: https://github.com/afrl-rq/OpenAMASE.git

@@ -1,7 +1,7 @@
 OpenUxAS-bootstrap
 ==================
 
-[![Github Actions](https://github.com/AdaCore/OpenUxAS-bootstrap/workflows/Checks/badge.svg)](https://github.com/AdaCore/OpenUxAS-bootstrap/actions)
+[![Github Actions](https://github.com/afrl-rq/OpenUxAS-bootstrap/workflows/Checks/badge.svg)](https://github.com/afrl-rq/OpenUxAS-bootstrap/actions)
 [![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
@@ -59,7 +59,7 @@ Before you begin, you will need:
 
 Bootstrap your install by running this command:
 
-    ~$ curl -L https://github.com/AdaCore/OpenUxAS-bootstrap/raw/master/install/bootstrap | bash
+    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/develop/install/bootstrap | bash
 
 Configure your environment to run the build tool:
 
@@ -125,9 +125,9 @@ Once these steps are completed, you can run OpenUxAS.
 
 To get started as a user of OpenUxAS, simply run this command in a terminal:
 
-    ~$ curl -L https://github.com/AdaCore/OpenUxAS-bootstrap/raw/master/install/bootstrap | bash
+    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/develop/install/bootstrap | bash
 
-The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's master branch and will then execute the script using `bash`. 
+The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's develop branch and will then execute the script using `bash`.
 The script will confirm that basic dependencies are met and will then clone this repository and execute the `install` script in the `install` directory in this repository. 
 
 Once the command has successfully executed, you will have a new directory `bootstrap` in your home directory.
@@ -179,9 +179,9 @@ We provide two approaches to developer setup:
 
 To get started as a developer of OpenUxAS, simply run this command in a terminal:
 
-    ~$ curl -L https://github.com/AdaCore/OpenUxAS-bootstrap/raw/master/install/bootstrap | DEVEL=1 bash
+    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/develop/install/bootstrap | DEVEL=1 bash
 
-The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's master branch and will then execute the script using `bash`. 
+The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's develop branch and will then execute the script using `bash`.
 The script will confirm that basic dependencies are met and will then clone this repository and execute the `install` script in the `install` directory in this repository. 
 
 Once the command has successfully executed, you will have a new directory `bootstrap` in your home directory.
@@ -197,9 +197,9 @@ The contents of these three repositories will be used whenever OpenUxAS is built
 
 To get started as a developer of OpenUxAS, simply run this command in a terminal:
 
-    ~$ curl -L https://github.com/AdaCore/OpenUxAS-bootstrap/raw/master/install/bootstrap | bash
+    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/develop/install/bootstrap | bash
 
-The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's master branch and will then execute the script using `bash`. 
+The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's develop branch and will then execute the script using `bash`.
 The script will confirm that basic dependencies are met and will then clone this repository and execute the `install` script in the `install` directory in this repository. 
 
 Once the command has successfully executed, you will have a new directory `bootstrap` in your home directory.
@@ -279,7 +279,7 @@ To rerun the proofs for these services, you need the SPARK tools.
 GNAT Community Edition provides both a suitable Ada compiler and the SPARK tools.
 You can bootstrap with the GNAT Community Edition like this:
 
-    ~$ curl -L https://github.com/AdaCore/OpenUxAS-bootstrap/raw/master/install/bootstrap | ADA=1 bash
+    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/develop/install/bootstrap | ADA=1 bash
 
 To use the build system in `bootstrap`, you need to configure your environment.
 You can do so like this:
@@ -418,7 +418,7 @@ This configuration file lists all of the repositories for components that may be
 For each repository, the version-control system is identified, a URL to the repository is given, and a specific revision is identified.
 For git, the most common version-control system, the revision is a refspec and may be:
 
-- a specific branch, such as "master"
+- a specific branch, such as "develop"
 - a tag, such as "v2.0.0"
 - a specific commit, identified directly
 
@@ -518,7 +518,7 @@ In particular, the following should be done:
   - a new spec should be added to `specs` to describe the new dependency (see [above](#anod-specs))
   - an entry in `specs/config/repositories.yaml` should be added for the new dependency (see [above](#anod-repositories))
 
-If the new dependency is on the "master" or "develop" branch of OpenUxAS, the dependency should be added to the "master" branch of OpenUxAS-bootstrap.
+If the new dependency is on the "develop" branch of OpenUxAS, the dependency should be added to the "develop" branch of OpenUxAS-bootstrap.
 
 If the new dependency is on another branch of OpenUxAS, the dependency should be added to a new branch of OpenUxAS-bootstrap of the same name.
 For example, in OpenUxAS, the "DAIDALUS_integration" branch depends upon the NASA well-clear library. 
