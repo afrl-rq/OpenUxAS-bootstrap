@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 """Script to configure OpenUxAS anod environment for development work."""
 
@@ -47,7 +47,7 @@ anod so that the checked out repositories will be used during the build.
 
 For example, run:
 
-  ./anod-devel-setup --uxas
+  ./anod devel-setup uxas
 
 to check out OpenUxAS for development. By default, the checkout will be in
 `develop/OpenUxAS`.
@@ -69,6 +69,7 @@ current state for the build.
 
 
 def update_yaml(yaml_filename: str, key: str, clone_dir: str) -> None:
+    """Update the given yaml file for the specified component."""
     with open(yaml_filename, "r") as yaml_file:
         loaded_yaml = yaml.safe_load(yaml_file.read())
 
@@ -81,6 +82,12 @@ def update_yaml(yaml_filename: str, key: str, clone_dir: str) -> None:
 
 
 def check_out(name: str, remote: str, refspec: str, clone_dir: str) -> None:
+    """
+    Check out the given repository.
+
+    This is a deep (non-shallow) checkout, which differs from e3's typical
+    operation.
+    """
     if not os.path.exists(clone_dir):
         logging.info(
             "Checking out %s\n        from %s %s\n        to %s"
@@ -99,6 +106,7 @@ def configure_argparse_for_component(
     default_remote: str,
     default_refspec: str,
 ) -> None:
+    """Add arguments to argparse for the given component."""
     ap.add_argument(
         "--%s-clone-dir" % key,
         default=default_dir,
@@ -120,6 +128,7 @@ def configure_argparse_for_component(
 
 
 def do_devel_setup(m: Main, set_prog: bool = True) -> int:
+    """Execute the main functionality of the script."""
     if set_prog:
         m.argument_parser.prog = m.argument_parser.prog + " devel-setup"
 

@@ -11,7 +11,6 @@ Code conventions
 Before contributing a change please activate pre-commit checks locally:
 
 ```bash
-
 $ pip3 install pre-commit
 $ pre-commit install
 ```

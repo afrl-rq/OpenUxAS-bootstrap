@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
+"""Anod-based build script."""
 
 from __future__ import annotations
 
@@ -27,6 +29,7 @@ BUILD_SUCCESS = [
 
 
 def do_build(m: Main, set_prog: bool = True) -> int:
+    """Perform the build."""
     if set_prog:
         m.argument_parser.prog = m.argument_parser.prog + " build"
     m.argument_parser.add_argument(

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """Simple front-end to the task-specific anod scripts contained in lib."""
 
