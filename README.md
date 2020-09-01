@@ -30,6 +30,8 @@ We've organized this README into sections, to simplify navigation.
       4. [Using Anod during OpenUxAS Development](#anod-development)
    4. [Division of Labor: OpenUxAS and OpenUxAS-bootstrap](#division)
       1. [Adding a New Dependency to OpenUxAS](#new-dependency)
+4. [Troubleshooting](#troubleshooting)
+   1. [Verbosity](#verbosity)
 
 There are three components discussed in this README:
 
@@ -63,7 +65,7 @@ Bootstrap your install by running this command:
 
 Configure your environment to run the build tool:
 
-    ~$ eval "$( ~/bootstrap/install/install-anod-venv --printenv )"
+    ~$ eval "$( cd ~/bootstrap && install/install-anod-venv --printenv )"
 
 Build OpenUxAS and OpenAMASE:
 
@@ -140,9 +142,9 @@ Once the command has successfully executed, you will have a new directory `boots
 To use the build system in `bootstrap`, you need to configure your environment.
 You can do so like this:
 
-    ~$ eval "$( ~/bootstrap/install/install-anod-venv --printenv )"
+    ~$ eval "$( cd ~/bootstrap && install/install-anod-venv --printenv )"
 
-If you do not wish to enter this command each time you want to build OpenUxAS, you can add them to your profile.
+If you do not wish to enter this command each time you want to build OpenUxAS, you can add it to your profile.
 
 ### 2.2.3. Build OpenUxAS and OpenAMASE
 
@@ -226,9 +228,9 @@ You can configure where `anod devel-setup` places the repository using command-l
 To use the build system in `bootstrap`, you need to configure your environment.
 You can do so like this:
 
-    ~$ eval "$( ~/bootstrap/install/install-anod-venv --printenv )"
+    ~$ eval "$( cd ~/bootstrap && install/install-anod-venv --printenv )"
 
-If you do not wish to enter this command each time you want to build OpenUxAS, you can add them to your profile.
+If you do not wish to enter this command each time you want to build OpenUxAS, you can add it to your profile.
 
 ### 2.3.4. Build OpenUxAS and OpenAMASE
 
@@ -254,14 +256,9 @@ If you do not wish to enter these commands each time you want to run OpenUxAS, y
 
 If you develop OpenUxAS, you will probably not want to use anod to rebuild OpenUxAS each time you make changes.
 As is explained [below](#anod), anod will completely rebuild OpenUxAS whenever any change is made, as though you had cleaned the build first.
-Instead, you should use make to build OpenUxAS.
+Instead, you should use `make` to build OpenUxAS.
 
-Before you can use make to build OpenUxAS, you need to configure your environment, like this:
-
-    ~/bootstrap$ eval "$( ./anod printenv uxas --build-env )"
-
-This will ensure that make is able to find all of the dependencies that anod built.
-You can now change to your OpenUxAS clone and build OpenUxAS using make:
+Change to your OpenUxAS clone and build OpenUxAS using `make`:
 
     /path/to/OpenUxAS$ make all
 
@@ -284,8 +281,8 @@ You can bootstrap with the GNAT Community Edition like this:
 To use the build system in `bootstrap`, you need to configure your environment.
 You can do so like this:
 
-    ~$ eval "$( ~/bootstrap/install/install-gnat --printenv )"
-    ~$ eval "$( ~/bootstrap/install/install-anod-venv --printenv )"
+    ~$ eval "$( cd ~/bootstrap && install/install-gnat --printenv )"
+    ~$ eval "$( cd ~/bootstrap && install/install-anod-venv --printenv )"
 
 If you do not wish to enter these commands each time you want to build OpenUxAS, you can add them to your profile.
 
@@ -317,7 +314,7 @@ If you want to use GNAT Studio to develop OpenUxAS Ada code, you will need to ex
 
     ~/bootstrap$ eval "$( ./anod printenv uxas-ada --build-env )"
 
-This makes the dependencies that are build by anod available in GNAT Studio, so that you can rebuild your Ada sources using the IDE.
+This makes the dependencies that are built by anod available in GNAT Studio, so that you can rebuild your Ada sources using the IDE.
 
 Once you are finished making modifications to the OpenUxAS Ada code and before you push your changes, you should re-run the anod build.
 Essentially, this will repeat on your local machine the same build that will be performed during continuous integration, ensuring that your build is consistent and reproducible.
@@ -524,3 +521,24 @@ If the new dependency is on another branch of OpenUxAS, the dependency should be
 For example, in OpenUxAS, the "DAIDALUS_integration" branch depends upon the NASA well-clear library. 
 A branch has thus been added to OpenUxAS-bootstrap that provides an anod spec for the well-clear library and that lists the NASA well-clear repository in `repositories.yaml`. 
 These two branches are tested and deployed together.
+
+# 4. Troubleshooting<a name="troubleshooting" />
+
+If at any point you get a message that an executable, library, or header file is not defined and you believe that the missing file should have been built or installed by anod, this probably means that some part of the anod-managed environment has not been exported to your shell's environment.
+For example, if you get a message that `uxas` is not a recognized command, try:
+
+    ~/bootstrap$ eval "$( ./anod printenv uxas )"
+
+Or, if `ant` is not a recognized command, try:
+
+    ~/bootstrap$ eval "$( ./anod printenv ant )"
+
+Similarly, if a library or header file is not found during the build of OpenUxAS, try:
+
+    ~/bootstrap$ eval "$( ./anod printenv uxas --build-env )"
+
+## 4.1. Verbosity<a name="verbosity" />
+
+Anod and most of the other scripts provided in this repository offer more verbose logging.
+In general, passing additional `-v` flags will make logging more verbose.
+For example, for the most verbose logging, you can pass `-vv` to most scripts.
