@@ -48,6 +48,13 @@ def do_printenv(m: Main, set_prog: bool = True) -> int:
         action="store_true",
         default=False,
     )
+
+    m.argument_parser.add_argument(
+        "--inline",
+        help="print variable definitions on a single line without exports",
+        action="store_true",
+        default=False,
+    )
     m.parse_args()
 
     # Disable logging messages except errors
@@ -78,14 +85,19 @@ def do_printenv(m: Main, set_prog: bool = True) -> int:
 
     for var, value in os.environ.items():
         if var not in saved_env or saved_env[var] != os.environ[var]:
-            print('export %s="%s";' % (var, value))
+            if m.args.inline:
+                print('%s="%s"' % (var, value), end=" ")
+            else:
+                print('export %s="%s";' % (var, value))
 
-            if m.args.verbose >= 1:
-                print('printf "I set %s=\\"%s\\"\\n\\n";' % (var, value))
+                if m.args.verbose >= 1:
+                    print('printf "I set %s=\\"%s\\"\\n\\n";' % (var, value))
 
-            print(" ")
+                print(" ")
 
-    print(BANNER % m.args.spec_name)
+    if not m.args.inline:
+        print(BANNER % m.args.spec_name)
+
     return 0
 
 

@@ -69,6 +69,11 @@ class AMASE(spec('common')):
         # Expose path to JAVA
         self.deps['java'].setenv()
 
+    def build_setenv(self):
+        self.deps['ant'].setenv()
+        self.deps['java'].setenv()
+        self.deps['uxas-lmcp'].setenv()
+
     @Anod.primitive()
     def build(self):
         self.deps['java'].setenv()
