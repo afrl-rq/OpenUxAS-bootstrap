@@ -21,12 +21,19 @@ class CustomHelpAction(_HelpAction):
 
     def __init__(self, option_strings, dest=SUPPRESS, default=SUPPRESS, help=None):
         super(CustomHelpAction, self).__init__(
-            option_strings=option_strings, dest=dest, default=default, help=help,
+            option_strings=option_strings,
+            dest=dest,
+            default=default,
+            help=help,
         )
         self.current_pass = 1
 
     def __call__(
-        self, parser, namespace, values, option_string=None,
+        self,
+        parser,
+        namespace,
+        values,
+        option_string=None,
     ):
         if self.current_pass > 1 or getattr(namespace, "command", None) is None:
             parser.print_help()
@@ -47,7 +54,10 @@ if __name__ == "__main__":
     )
 
     help_arg = m.argument_parser.add_argument(
-        "-h", "--help", action=CustomHelpAction, help="show this help message and exit",
+        "-h",
+        "--help",
+        action=CustomHelpAction,
+        help="show this help message and exit",
     )
 
     m.parse_args(known_args_only=True)
