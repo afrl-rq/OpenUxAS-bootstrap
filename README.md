@@ -5,6 +5,11 @@ OpenUxAS-bootstrap
 [![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
+## DAIDALUS Integration Branch
+
+> ***This branch is intended to facilitate in-progress efforts to integrate DAIDALUS into OpenUxAS.***
+> Most users should instead use the main development branch [here](http://github.com/afrl-rq/OpenUxAS-bootstrap).
+
 This respository is designed to get you up and running with [OpenUxAS](https://github.com/afrl-rq/OpenUxAS) development as quickly and efficiently as possible.
 This repository contains scripts to help you configure your environment and provides a fully automated, reproducible build for OpenUxAS.
 
@@ -41,9 +46,9 @@ There are three components discussed in this README:
 
 Throughout the remainder of the README, we will write commands that you should enter in your Linux terminal like this:
 
-    ~/bootstrap$ command argument
+    ~/daidalus$ command argument
 
-This means that you have changed to the directory `~/bootstrap` in your Linux machine and you are going to execute the command `command` with the arguments `argument`.
+This means that you have changed to the directory `~/daidalus` in your Linux machine and you are going to execute the command `command` with the arguments `argument`.
 If you would like to copy-paste commands from this README, you should only copy the part that begins after the `$`.
 
 
@@ -59,22 +64,22 @@ Before you begin, you will need:
 3. git
 4. python 3.8
 
-Bootstrap your install by running this command:
+Bootstrap your install by running this command. The command is long because we options to the bootstrap script that configure it for working with this branch on this fork of the repository.
 
-    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/develop/install/bootstrap | bash
+    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/daidalus_integration/install/bootstrap | BOOTSTRAP_ROOT=~/daidalus BOOTSTRAP_REF=daidalus_integration bash
 
 Configure your environment to run the build tool:
 
-    ~$ eval "$( cd ~/bootstrap && install/install-anod-venv --printenv )"
+    ~$ eval "$( cd ~/daidalus && install/install-anod-venv --printenv )"
 
 Build OpenUxAS and OpenAMASE:
 
-    ~/bootstrap$ ./anod build uxas
-    ~/bootstrap$ ./anod build amase
+    ~/daidalus$ ./anod build uxas
+    ~/daidalus$ ./anod build amase
 
 Now you can run the OpenUxAS examples:
 
-    ~/bootstrap$ ./run-example 02_Example_WaterwaySearch
+    ~/daidalus$ ./run-example 02_Example_WaterwaySearch
 
 
 # 2. Bootstrapping OpenUxAS<a name="getting-started" />
@@ -127,22 +132,22 @@ Once these steps are completed, you can run OpenUxAS.
 
 To get started as a user of OpenUxAS, simply run this command in a terminal:
 
-    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/develop/install/bootstrap | bash
+    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/daidalus_integration/install/bootstrap | BOOTSTRAP_ROOT=~/daidalus BOOTSTRAP_REF=daidalus_integration bash
 
-The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's develop branch and will then execute the script using `bash`.
+The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's DAIDALUS_integration branch and will then execute the script using `bash`.
 The script will confirm that basic dependencies are met and will then clone this repository and execute the `install` script in the `install` directory in this repository. 
 
-Once the command has successfully executed, you will have a new directory `bootstrap` in your home directory.
+Once the command has successfully executed, you will have a new directory `daidalus` in your home directory.
 
 > _**Note**: if you have already cloned this repository, you should not run the `curl` command above, and instead should simply run `install/install`._
 > _The installer will run in interactive mode, so you will be able to make choices about what actions it should take._
 
 ### 2.2.2. Configure Your Environment for the Build
 
-To use the build system in `bootstrap`, you need to configure your environment.
+To use the build system in `daidalus`, you need to configure your environment.
 You can do so like this:
 
-    ~$ eval "$( cd ~/bootstrap && install/install-anod-venv --printenv )"
+    ~$ eval "$( cd ~/daidalus && install/install-anod-venv --printenv )"
 
 If you do not wish to enter this command each time you want to build OpenUxAS, you can add it to your profile.
 
@@ -150,15 +155,15 @@ If you do not wish to enter this command each time you want to build OpenUxAS, y
 
 Now, you can build OpenUxAS and OpenAMASE:
 
-    ~/bootstrap$ ./anod build uxas
-    ~/bootstrap$ ./anod build amase
+    ~/daidalus$ ./anod build uxas
+    ~/daidalus$ ./anod build amase
 
 ### 2.2.4. Running OpenUxAS
 
 The best way to get a feel for OpenUxAS is to run one of the examples provided with OpenUxAS.
 You can do that like this:
 
-    ~/bootstrap$ ./run-example 02_Example_WaterwaySearch
+    ~/daidalus$ ./run-example 02_Example_WaterwaySearch
 
 OpenAMASE will start and OpenUxAS will be launched in a separate process.
 Click on the run button in OpenAMASE once the OpenAMASE window opens.
@@ -166,7 +171,7 @@ The scenario will start.
 
 You can get a listing of the other examples that can be run with `run-example` by using:
 
-    ~/bootstrap$ ./run-example --list
+    ~/daidalus$ ./run-example --list
 
 ## 2.3. OpenUxAS Developers<a name="uxas-developers" />
 
@@ -181,13 +186,13 @@ We provide two approaches to developer setup:
 
 To get started as a developer of OpenUxAS, simply run this command in a terminal:
 
-    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/develop/install/bootstrap | DEVEL=1 bash
+    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/daidalus_integration/install/bootstrap | BOOTSTRAP_ROOT=~/daidalus BOOTSTRAP_REF=daidalus_integration DEVEL=1 bash
 
-The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's develop branch and will then execute the script using `bash`.
+The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's DAIDALUS_integration branch and will then execute the script using `bash`.
 The script will confirm that basic dependencies are met and will then clone this repository and execute the `install` script in the `install` directory in this repository. 
 
-Once the command has successfully executed, you will have a new directory `bootstrap` in your home directory.
-Within the `bootstrap` directory, you will have a directory `develop`.
+Once the command has successfully executed, you will have a new directory `daidalus` in your home directory.
+Within the `daidalus` directory, you will have a directory `develop`.
 The `develop` directory contains:
 - `LmcpGen` - a clone of the LmcpGen repository
 - `OpenAMASE` - a clone of the OpenAMASE repository
@@ -199,12 +204,12 @@ The contents of these three repositories will be used whenever OpenUxAS is built
 
 To get started as a developer of OpenUxAS, simply run this command in a terminal:
 
-    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/develop/install/bootstrap | bash
+    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/daidalus_integration/install/bootstrap | BOOTSTRAP_ROOT=~/daidalus BOOTSTRAP_REF=daidalus_integration bash
 
-The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's develop branch and will then execute the script using `bash`.
+The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's DAIDALUS_integration branch and will then execute the script using `bash`.
 The script will confirm that basic dependencies are met and will then clone this repository and execute the `install` script in the `install` directory in this repository. 
 
-Once the command has successfully executed, you will have a new directory `bootstrap` in your home directory.
+Once the command has successfully executed, you will have a new directory `daidalus` in your home directory.
 
 You may clone OpenUxAS, OpenAMASE, or LCMPgen manually, placing them wherever you would like.
 Then, you need to tell the build system that it should use your clone, rather than a fresh checkout of the repository.
@@ -218,17 +223,17 @@ Here's an example of how you would update the entry for OpenUxAS:
 
 Alternatively, you can use anod to clone the repository for you, like this:
 
-    ~/bootstrap$ ./anod devel-setup uxas
+    ~/daidalus$ ./anod devel-setup uxas
 
-Anod will clone OpenUxAS, placing it in `bootstrap/develop/OpenUxAS` and will update the `repositories.yaml` file for you.
+Anod will clone OpenUxAS, placing it in `daidalus/develop/OpenUxAS` and will update the `repositories.yaml` file for you.
 You can configure where `anod devel-setup` places the repository using command-line options; see `anod devel-setup --help` for complete options.
 
 ### 2.3.3. Configure Your Environment for the Build
 
-To use the build system in `bootstrap`, you need to configure your environment.
+To use the build system in `daidalus`, you need to configure your environment.
 You can do so like this:
 
-    ~$ eval "$( cd ~/bootstrap && install/install-anod-venv --printenv )"
+    ~$ eval "$( cd ~/daidalus && install/install-anod-venv --printenv )"
 
 If you do not wish to enter this command each time you want to build OpenUxAS, you can add it to your profile.
 
@@ -236,16 +241,16 @@ If you do not wish to enter this command each time you want to build OpenUxAS, y
 
 Now, you can build OpenUxAS and OpenAMASE:
 
-    ~/bootstrap$ ./anod build uxas
-    ~/bootstrap$ ./anod build amase
+    ~/daidalus$ ./anod build uxas
+    ~/daidalus$ ./anod build amase
 
 ### 2.3.5. Configure Your Environment to Run OpenUxAS or OpenAMASE
 
 You can use anod to automatically configure your environment to run OpenUxAS, OpenAMASE, or any of the other components that anod builds.
 For example, to configure your environment to run OpenUxAS:
 
-    ~/bootstrap$ eval "$( ./anod printenv uxas )"
-    ~/bootstrap$ eval "$( ./anod printenv amase )"
+    ~/daidalus$ eval "$( ./anod printenv uxas )"
+    ~/daidalus$ eval "$( ./anod printenv amase )"
 
 Note that this step is performed automatically if you use the `run-example` script that is provided in this repository.
 You will need to perform this step only if you plan to run OpenUxAS some other way (either manually or using the `run-example` script provided in the OpenUxAS repository).
@@ -276,13 +281,13 @@ To rerun the proofs for these services, you need the SPARK tools.
 GNAT Community Edition provides both a suitable Ada compiler and the SPARK tools.
 You can bootstrap with the GNAT Community Edition like this:
 
-    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/develop/install/bootstrap | ADA=1 bash
+    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/daidalus_integration/install/bootstrap | BOOTSTRAP_ROOT=~/daidalus BOOTSTRAP_REF=daidalus_integration ADA=1 bash
 
-To use the build system in `bootstrap`, you need to configure your environment.
+To use the build system in `daidalus`, you need to configure your environment.
 You can do so like this:
 
-    ~$ eval "$( cd ~/bootstrap && install/install-gnat --printenv )"
-    ~$ eval "$( cd ~/bootstrap && install/install-anod-venv --printenv )"
+    ~$ eval "$( cd ~/daidalus && install/install-gnat --printenv )"
+    ~$ eval "$( cd ~/daidalus && install/install-anod-venv --printenv )"
 
 If you do not wish to enter these commands each time you want to build OpenUxAS, you can add them to your profile.
 
@@ -296,23 +301,23 @@ As long as your environment is properly configured to use GNAT Pro and SPARK Pro
 
 Now, you can build the Ada services for OpenUxAS like this:
 
-    ~/bootstrap$ ./anod build uxas-ada
+    ~/daidalus$ ./anod build uxas-ada
 
 You configure your environment to run the Ada services like this:
 
-    ~/bootstrap$ eval "$( ./anod printenv uxas-ada )"
+    ~/daidalus$ eval "$( ./anod printenv uxas-ada )"
 
 ### 2.4.4. Running the Ada Examples
 
 Once you have built the Ada services for OpenUxAS, as well as the C++ OpenUxAS and OpenAMASE, you can run the Ada examples:
 
-    ~/bootstrap$ ./run-example 02a_Ada_WaterwaySearch
+    ~/daidalus$ ./run-example 02a_Ada_WaterwaySearch
 
 ### 2.4.5. Ada Development Using GNAT Studio
 
 If you want to use GNAT Studio to develop OpenUxAS Ada code, you will need to export the build environment configured by anod:
 
-    ~/bootstrap$ eval "$( ./anod printenv uxas-ada --build-env )"
+    ~/daidalus$ eval "$( ./anod printenv uxas-ada --build-env )"
 
 This makes the dependencies that are built by anod available in GNAT Studio, so that you can rebuild your Ada sources using the IDE.
 
@@ -339,9 +344,9 @@ This repository contains the following:
 ## 3.2 Install Support<a name="install-support" />
 
 To simplify the installation of the dependencies needed to run anod, we provide a top-level install script in the `install` directory.
-Assuming you have cloned this repository to `~/bootstrap`, you would run the install script like this:
+Assuming you have cloned this repository to `~/daidalus`, you would run the install script like this:
 
-    ~/bootstrap$ install/install
+    ~/daidalus$ install/install
 
 The script automates the installation of GNAT Community Edition, which is needed to build the OpenUxAS Ada services, and the python virtual environment that is needed to run anod.
 When run as above, the script is interactive, so you can choose which components to install.
@@ -354,7 +359,7 @@ This summary includes the environment configuration needed to run anod.
 
 To see the summary again without making any changes, you can run:
 
-    ~/bootstrap$ install/install -ny
+    ~/daidalus$ install/install -ny
 
 The `-n` option instructs the installer to perform a dry run; no changes are made.
 The `-y` option instructs the installer to run in automatic mode. 
@@ -486,7 +491,7 @@ Before starting development, you should use anod to build OpenUxAS.
 This will ensure that all dependencies have been built and are ready for use.
 Then, you export the build environment by running `anod printenv`, like this:
 
-    ~/bootstrap$ eval "$( ./anod printenv uxas --build-env )"
+    ~/daidalus$ eval "$( ./anod printenv uxas --build-env )"
 
 Now, as you do your development work, you won't need to use anod anymore.
 Instead, you should use the local build system to build your changes.
@@ -498,7 +503,7 @@ Anod will then copy your sources, including all changes, and rebuild OpenUxAS wi
 
 You can force a full rebuild by passing `--force` to anod, like this:
 
-    ~/bootstrap$ ./anod build uxas --force
+    ~/daidalus$ ./anod build uxas --force
 
 ## 3.4. Division of Labor: OpenUxAS and OpenUxAS-bootstrap<a name="division" />
 
