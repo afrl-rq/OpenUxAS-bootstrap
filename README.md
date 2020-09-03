@@ -66,7 +66,7 @@ Before you begin, you will need:
 
 Bootstrap your install by running this command. The command is long because we options to the bootstrap script that configure it for working with this branch on this fork of the repository.
 
-    ~$ curl -L https://github.com/AdaCore/OpenUxAS-bootstrap/raw/DAIDALUS_integration/install/bootstrap | BOOTSTRAP_ROOT=~/daidalus BOOTSTRAP_FORK=AdaCore/OpenUxAS-bootstrap.git BOOTSTRAP_REF=DAIDALUS_integration bash
+    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/daidalus_integration/install/bootstrap | BOOTSTRAP_ROOT=~/daidalus BOOTSTRAP_REF=daidalus_integration bash
 
 Configure your environment to run the build tool:
 
@@ -132,7 +132,7 @@ Once these steps are completed, you can run OpenUxAS.
 
 To get started as a user of OpenUxAS, simply run this command in a terminal:
 
-    ~$ curl -L https://github.com/AdaCore/OpenUxAS-bootstrap/raw/DAIDALUS_integration/install/bootstrap | BOOTSTRAP_ROOT=~/daidalus BOOTSTRAP_FORK=AdaCore/OpenUxAS-bootstrap.git BOOTSTRAP_REF=DAIDALUS_integration bash
+    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/daidalus_integration/install/bootstrap | BOOTSTRAP_ROOT=~/daidalus BOOTSTRAP_REF=daidalus_integration bash
 
 The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's DAIDALUS_integration branch and will then execute the script using `bash`.
 The script will confirm that basic dependencies are met and will then clone this repository and execute the `install` script in the `install` directory in this repository. 
@@ -186,7 +186,7 @@ We provide two approaches to developer setup:
 
 To get started as a developer of OpenUxAS, simply run this command in a terminal:
 
-    ~$ curl -L https://github.com/AdaCore/OpenUxAS-bootstrap/raw/DAIDALUS_integration/install/bootstrap | BOOTSTRAP_ROOT=~/daidalus BOOTSTRAP_FORK=AdaCore/OpenUxAS-bootstrap.git BOOTSTRAP_REF=DAIDALUS_integration DEVEL=1 bash
+    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/daidalus_integration/install/bootstrap | BOOTSTRAP_ROOT=~/daidalus BOOTSTRAP_REF=daidalus_integration DEVEL=1 bash
 
 The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's DAIDALUS_integration branch and will then execute the script using `bash`.
 The script will confirm that basic dependencies are met and will then clone this repository and execute the `install` script in the `install` directory in this repository. 
@@ -204,7 +204,7 @@ The contents of these three repositories will be used whenever OpenUxAS is built
 
 To get started as a developer of OpenUxAS, simply run this command in a terminal:
 
-    ~$ curl -L https://github.com/AdaCore/OpenUxAS-bootstrap/raw/DAIDALUS_integration/install/bootstrap | BOOTSTRAP_ROOT=~/daidalus BOOTSTRAP_FORK=AdaCore/OpenUxAS-bootstrap.git BOOTSTRAP_REF=DAIDALUS_integration bash
+    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/daidalus_integration/install/bootstrap | BOOTSTRAP_ROOT=~/daidalus BOOTSTRAP_REF=daidalus_integration bash
 
 The command will fetch the shell script named `bootstrap` from the `install` directory in this repository's DAIDALUS_integration branch and will then execute the script using `bash`.
 The script will confirm that basic dependencies are met and will then clone this repository and execute the `install` script in the `install` directory in this repository. 
@@ -281,7 +281,7 @@ To rerun the proofs for these services, you need the SPARK tools.
 GNAT Community Edition provides both a suitable Ada compiler and the SPARK tools.
 You can bootstrap with the GNAT Community Edition like this:
 
-    ~$ curl -L https://github.com/AdaCore/OpenUxAS-bootstrap/raw/DAIDALUS_integration/install/bootstrap | BOOTSTRAP_ROOT=~/daidalus BOOTSTRAP_FORK=AdaCore/OpenUxAS-bootstrap.git BOOTSTRAP_REF=DAIDALUS_integration ADA=1 bash
+    ~$ curl -L https://github.com/afrl-rq/OpenUxAS-bootstrap/raw/daidalus_integration/install/bootstrap | BOOTSTRAP_ROOT=~/daidalus BOOTSTRAP_REF=daidalus_integration ADA=1 bash
 
 To use the build system in `daidalus`, you need to configure your environment.
 You can do so like this:

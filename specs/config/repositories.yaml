@@ -32,8 +32,8 @@ lmcpgen:
     revision: develop
 openuxas:
     vcs: git
-    url: https://github.com/AdaCore/OpenUxAS.git
-    revision: DAIDALUS_integration
+    url: https://github.com/afrl-rq/OpenUxAS.git
+    revision: daidalus_integration
 amase:
     vcs: git
     url: https://github.com/afrl-rq/OpenAMASE.git
