@@ -8,10 +8,11 @@
 #   BOOTSTRAP_ROOT : specify the directory in which the bootstrap should be
 #                    placed. Defaults to: ${HOME}/bootstrap
 #
-#   BOOTSTRAP_FORK : specify the fork of OpenUxAS-bootstrap to use. Note that
-#                    the master branch is always selected; it is not currently
-#                    possible to specify a ref-spec. Defaults to:
-#                    afrl-rq/OpenUxAS-bootstrap
+#   BOOTSTRAP_FORK : specify the fork of OpenUxAS-bootstrap to use. Defaults 
+#                    to: afrl-rq/OpenUxAS-bootstrap
+#
+#   BOOTSTRAP_REF  : specify the ref-spec that should be checked out. Defaults
+#                    to HEAD of the repo's default branch.
 #
 #   USE_GIT_URI    : if set (to anything other than the empty string), do not
 #                    perform the checkout using https.
@@ -87,16 +88,28 @@ else
   fi
 fi
 
-failed_checkout() {
+failed_clone() {
   colorize 1 "CRITICAL"
   echo ": Failed to git clone $1"
   exit -1
 }
 
-checkout() {
-  [ -d "$2" ] || git clone --depth 1 "$1" "$2" || failed_checkout "$1"
+clone() {
+  [ -d "$2" ] || git clone --depth 1 "$1" "$2" || failed_clone "$1"
 }
 
+failed_checkout() {
+  colorize 1 "CRITICAL"
+  echo ": Failed to check out $1"
+  exit -2
+}
+
+checkout() {
+  (git fetch --unshallow \
+     && git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*" \
+     && git fetch \
+     && git checkout "$1") || failed_checkout "$1"
+}
 
 if [ -n "${USE_GIT_URI}" ]; then
   GITHUB="git://github.com"
@@ -104,7 +117,11 @@ else
   GITHUB="https://github.com"
 fi
 
-checkout "${GITHUB}/${BOOTSTRAP_FORK}" "${BOOTSTRAP_ROOT}"
+clone "${GITHUB}/${BOOTSTRAP_FORK}" "${BOOTSTRAP_ROOT}"
+
+if [ -n "${BOOTSTRAP_REF}" ]; then
+  (cd "${BOOTSTRAP_ROOT}" && checkout "${BOOTSTRAP_REF}") || exit $?
+fi
 
 if [ -n "${ADA}" ]; then
   (cd "${BOOTSTRAP_ROOT}" && \
