@@ -105,7 +105,9 @@ failed_checkout() {
 }
 
 checkout() {
-  (git fetch --unshallow --update-head-ok origin '+refs/heads/*:refs/heads/*' \
+  (git fetch --unshallow \
+     && git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*" \
+     && git fetch \
      && git checkout "$1") || failed_checkout "$1"
 }
 
