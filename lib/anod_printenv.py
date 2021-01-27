@@ -13,6 +13,7 @@ from e3.env import BaseEnv
 import logging
 import os
 
+
 # Help users who can't remember to use eval.
 BANNER = """
 # ----------------------------------------------------------------------------
@@ -31,9 +32,10 @@ def do_printenv(m: Main, set_prog: bool = True) -> int:
     """Print the environment for the given spec."""
     if set_prog:
         m.argument_parser.prog = m.argument_parser.prog + " printenv"
+
     m.argument_parser.add_argument(
         "spec_name",
-        help="spec to build. This is "
+        help="spec for which environment should be printed. This is "
         "the basename of an .anod file (without the extension)",
     )
     m.argument_parser.add_argument("--qualifier", help="optional qualifier")

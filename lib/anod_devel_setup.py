@@ -191,6 +191,10 @@ def do_devel_setup(m: Main, set_prog: bool = True) -> int:
                 "OpenUxAS", args.uxas_remote, args.uxas_refspec, args.uxas_clone_dir
             )
 
+            from lib.anod_configure_vscode import do_configure
+
+            return do_configure(m)
+
         if "lmcp" in args.component:
             update_yaml(REPOSITORIES_YAML_PATH, LMCP_YAML_KEY, args.lmcp_clone_dir)
             check_out(

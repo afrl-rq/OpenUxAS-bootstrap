@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     command_arg = m.argument_parser.add_argument(
         "command",
-        choices=["build", "printenv", "devel-setup"],
+        choices=["build", "printenv", "devel-setup", "configure-vscode"],
         help="the subcommand to be run.",
     )
 
@@ -81,6 +81,11 @@ if __name__ == "__main__":
         from lib.anod_devel_setup import do_devel_setup
 
         exit(do_devel_setup(m))
+
+    elif m.args.command == "configure-vscode":
+        from lib.anod_configure_vscode import do_configure
+
+        exit(do_configure(m))
 
     else:
         # cannot happen
